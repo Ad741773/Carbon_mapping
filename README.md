@@ -1,211 +1,137 @@
-                                            # EcoTrace – Carbon Intelligence Platform
+# 🌿 EcoTrace — Carbon Footprint Platform Backend
+
+Production-ready Flask REST API for tracking, analysing, and reducing carbon footprints.
+Zero heavy dependencies — runs on **Flask + PyJWT + SQLite + numpy**.
+
+---
+
+## Project Structure
+
+```
+ecotrace/
+├── run.py                              ← Entry point
+├── requirements.txt
+├── .env.example
+├── Dockerfile
+│
+├── app/
+│   ├── __init__.py                     ← App factory, CORS, blueprints
+│   ├── db.py                           ← SQLite3 connection pool + schema
+│   │
+│   ├── routes/
+│   │   ├── auth.py                     ← Register, login, refresh, profile
+│   │   ├── calculator.py               ← Emission calculation endpoints
+│   │   ├── tracking.py                 ← CRUD for daily carbon records
+│   │   ├── dashboard.py                ← Analytics aggregation
+│   │   ├── goals.py                    ← Goal tracking CRUD
+│   │   ├── recommendations.py          ← AI / rule-based tips
+│   │   ├── leaderboard.py              ← User ranking
+│   │   ├── offset.py                   ← Tree & offset calculator
+│   │   ├── prediction.py               ← 12-month ML forecast
+│   │   └── reports.py                  ← CSV + PDF export
+│   │
+│   ├── services/
+│   │   ├── emission_calculator.py      ← Factors + formulas
+│   │   ├── score_engine.py             ← 0-100 sustainability score
+│   │   ├── recommendation_engine.py    ← Rule-based + Gemini AI tips
+│   │   ├── prediction_service.py       ← Linear regression forecast
+│   │   └── analytics_service.py        ← Dashboard aggregation
+│   │
+│   └── utils/
+│       ├── jwt_utils.py                ← PyJWT helpers + @jwt_required
+│       └── helpers.py                  ← success/error response builders
+│
+└── docs/
+    └── API.md                          ← Full API documentation
+```
+
+---
+
+## Quick Start
+
+```bash
+# 1. Enter directory
+cd ecotrace
+
+# 2. Copy env config
+cp .env.example .env
+# ✏️  Edit .env — set SECRET_KEY and JWT_SECRET_KEY
+
+# 3. Install dependencies (all minimal / likely pre-installed)
+pip install flask pyjwt python-dotenv numpy werkzeug
+pip install reportlab        # optional — PDF export
+pip install google-generativeai  # optional — Gemini AI tips
+
+# 4. Run
+python run.py
+```
+
+Server at → **http://localhost:5000**
+
+---
+
+## Feature Overview
+
+| Feature | Endpoint | Details |
+|---------|----------|---------|
+| **JWT Auth** | `/api/auth/*` | Register, login, refresh; bcrypt passwords |
+| **Calculator** | `/api/calculator/calculate` | 9 transport modes, electricity, LPG/CNG/PNG, 4 food types |
+| **Tracking** | `/api/tracking/*` | Full CRUD — log and manage daily records |
+| **Dashboard** | `/api/dashboard/` | Daily/weekly/monthly/yearly + trend + breakdown |
+| **Score** | embedded in dashboard | 0–100 grade with A+→F and global percentile |
+| **Recommendations** | `/api/recommendations/` | Rule engine (always) or Gemini AI (if key set) |
+| **Leaderboard** | `/api/leaderboard/` | Rank by score or lowest footprint; shows your rank |
+| **Goals** | `/api/goals/*` | Create, track progress, auto-complete at 100% |
+| **Offset** | `/api/offset/` | Trees, solar kW, carbon credits |
+| **Prediction** | `/api/prediction/` | 12-month linear regression forecast |
+| **CSV Export** | `/api/reports/csv` | Download records as CSV |
+| **PDF Report** | `/api/reports/pdf` | ReportLab PDF with score + table |
+
+---
+
+## Environment Variables
+
+| Variable | Required | Default |
+|----------|----------|---------|
+| `SECRET_KEY` | ✅ | — |
+| `JWT_SECRET_KEY` | ✅ | — |
+| `DATABASE_URL` | ❌ | `ecotrace.db` |
+| `JWT_ACCESS_TOKEN_EXPIRES` | ❌ | `86400` (24 h) |
+| `GEMINI_API_KEY` | ❌ | blank → rule engine |
+
+---
 
-                                                       ## Chosen Vertical
+## Production Deployment
 
-                                                **Sustainability & Climate Action**
+```bash
+# Gunicorn
+gunicorn "run:app" -w 4 -b 0.0.0.0:5000 --timeout 120
 
-EcoTrace is designed under the Carbon Footprint Awareness vertical. The platform helps individuals understand how their daily activities contribute to carbon emissions and provides actionable recommendations to reduce their environmental impact.
+# Docker
+docker build -t ecotrace .
+docker run -p 5000:5000 --env-file .env ecotrace
+```
 
-The solution focuses on creating awareness, encouraging behavioral change, and promoting sustainable living through data-driven insights.
+---
 
+## Sample API Calls
 
+```bash
+# Register
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Priya","email":"priya@test.com","password":"Test@1234"}'
 
-# Problem Statement
+# Calculate footprint
+curl -X POST http://localhost:5000/api/calculator/calculate \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"trips":[{"mode":"petrol_car","distance_km":40}],
+       "electricity_kwh":200,"fuel":{"lpg_cylinders":1},"food_type":"vegetarian"}'
 
-Many people are unaware of how transportation, electricity usage, cooking fuel consumption, and dietary choices affect their carbon footprint.
+# Get dashboard
+curl http://localhost:5000/api/dashboard/ \
+  -H "Authorization: Bearer <token>"
+```
 
-While carbon emissions are a global concern, individuals often lack access to simple tools that can:
-
-* Measure their emissions
-* Track progress over time
-* Understand areas of improvement
-* Receive personalized sustainability guidance
-
-EcoTrace addresses this challenge through an intelligent and interactive platform.
-
-
-
-# Approach and Logic
-
-The solution follows a four-step approach:
-
-### 1. Calculate
-
-Users enter information related to:
-
-* Transportation habits
-* Electricity consumption
-* Cooking fuel usage
-* Food preferences
-
-The system uses predefined emission factors to estimate carbon emissions generated from these activities.
-
-
-
-### 2. Analyze
-
-Collected data is processed to generate:
-
-* Total emissions
-* Category-wise breakdown
-* Historical trends
-* Sustainability scores
-
-This helps users identify the activities contributing most to their carbon footprint.
-
-
-### 3. Recommend
-
-Based on user behavior, EcoTrace generates personalized recommendations.
-
-Examples include:
-
-* Using public transport more frequently
-* Reducing electricity consumption
-* Adopting energy-efficient appliances
-* Making environmentally friendly food choices
-
-The recommendation engine focuses on practical and achievable actions.
-
-
-
-### 4. Improve
-
-The platform encourages long-term improvement through:
-
-* Goal tracking
-* Sustainability scoring
-* Community challenges
-* Achievement badges
-* Progress monitoring
-
-This gamified approach increases user engagement and promotes positive environmental behavior.
-
-
-# How the Solution Works
-
-### User Input Layer
-
-Users provide:
-
-* Weekly transportation usage
-* Monthly electricity consumption
-* Cooking fuel usage
-* Dietary preferences
-
-
-
-### Carbon Calculation Engine
-
-The backend applies emission factors to calculate carbon emissions generated by each activity category.
-
-Categories include:
-
-* Transportation
-* Electricity
-* Cooking Fuel
-* Food Consumption
-
-The results are aggregated into annual and monthly carbon footprint estimates.
-
-
-
-### Analytics Layer
-
-The platform generates:
-
-* Carbon trends
-* Category breakdowns
-* Emission forecasts
-* Sustainability scores
-
-Visual dashboards help users understand their environmental impact.
-
-
-
-### Recommendation Engine
-
-A rule-based recommendation system analyzes user activity and provides customized sustainability suggestions.
-
-Recommendations focus on reducing emissions in the highest-impact categories.
-
-
-
-### Engagement Layer
-
-Users can:
-
-* Set carbon reduction goals
-* Track progress
-* Earn sustainability badges
-* Participate in challenges
-* Compare performance on leaderboards
-
-This creates motivation and encourages continuous improvement.
-
-
-
-# Assumptions Made
-
-The following assumptions were made during development:
-
-### Carbon Factors
-
-Emission calculations are based on publicly available average emission factors and are intended for awareness and educational purposes.
-
-
-
-### User Data
-
-Users provide accurate information regarding:
-
-* Transportation usage
-* Electricity consumption
-* Fuel usage
-* Dietary habits
-
-The accuracy of results depends on the quality of user inputs.
-
-
-
-### Geographic Variations
-
-The current version uses generalized emission factors and does not account for regional differences in:
-
-* Electricity generation mix
-* Transportation efficiency
-* Local environmental conditions
-
-
-
-### Prediction Model
-
-Future emission forecasts are based on historical trends and assume similar behavioral patterns unless user habits change significantly.
-
-
-
-### Recommendations
-
-Recommendations are generated using predefined sustainability rules and best practices. They are designed to guide users toward lower-carbon lifestyle choices.
-
-
-
-# Expected Impact
-
-EcoTrace aims to:
-
-* Increase carbon footprint awareness
-* Encourage sustainable habits
-* Promote data-driven environmental decisions
-* Help individuals track measurable improvements
-* Support climate-conscious lifestyle changes
-
-By combining analytics, recommendations, and gamification, EcoTrace transforms carbon awareness into actionable and measurable outcomes.
-
-
-
-# Conclusion
-
-EcoTrace is a comprehensive Carbon Intelligence Platform that enables users to calculate, track, analyze, and reduce their carbon footprint through personalized insights, sustainability scoring, predictive analytics, and community engagement.
-
-The platform demonstrates how technology can empower individuals to contribute toward a more sustainable future.
+See `docs/API.md` for complete documentation.

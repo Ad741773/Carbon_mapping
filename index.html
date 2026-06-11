@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoTrace — Carbon Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --void:#050e09;--void2:#0a1a10;--void3:#0f2418;--void4:#162d1e;
+  --em:#00c896;--em-glow:#00ffb9;--em-dim:#007a5a;--em-dark:#004d38;
+  --teal:#0d7a6e;--sky:#22d3ee;--lime:#b5f23c;
+  --amber:#f59e0b;--crimson:#ef4444;--purple:#8b5cf6;
+  --surf:rgba(255,255,255,0.04);--surf2:rgba(255,255,255,0.07);--surf3:rgba(255,255,255,0.11);
+  --border:rgba(0,200,150,0.12);--border2:rgba(0,200,150,0.22);--border3:rgba(0,200,150,0.35);
+  --text:#e8f5ef;--text2:#8bbfa8;--text3:#4d7a62;--text4:#2a4d38;
+  --ff-h:'Space Grotesk',sans-serif;--ff-b:'Inter',sans-serif;--ff-m:'JetBrains Mono',monospace;
+  --r:14px;--r2:20px;--r3:28px;
+  --glow-sm:0 0 20px rgba(0,200,150,0.15);
+  --glow-md:0 0 40px rgba(0,200,150,0.2);
+  --glow-lg:0 0 80px rgba(0,255,185,0.2);
+  --sh:0 4px 24px rgba(0,0,0,0.4);
+  --sh2:0 8px 40px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--ff-b);background:var(--void);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(0,200,150,0.3);color:var(--em-glow)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--em-dim);border-radius:99px}
+input,select,textarea,button{font-family:var(--ff-b)}a{text-decoration:none;color:inherit}
+img{max-width:100%}
+
+/* ── KEYFRAMES ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinR{to{transform:rotate(-360deg)}}
+@keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes lbar{from{width:0}to{width:100%}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeScale{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.6}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes floatR{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-8px) rotate(-1deg)}}
+@keyframes ringRot{to{transform:rotate(360deg)}}
+@keyframes shimmer{to{background-position:-200% 0}}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes typeDot{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-6px);opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(0,200,150,0.1)}50%{box-shadow:0 0 40px rgba(0,255,185,0.25)}}
+@keyframes countUp{from{opacity:0;transform:scale(.8) translateY(10px)}to{opacity:1;transform:none}}
+
+/* ── GRID BACKGROUND ── */
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,200,150,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,150,.035) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 20%,transparent 80%)}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;will-change:transform}
+.orb-1{width:700px;height:700px;background:radial-gradient(circle,rgba(0,200,150,.07),transparent);top:-200px;right:-150px}
+.orb-2{width:600px;height:600px;background:radial-gradient(circle,rgba(8,145,178,.06),transparent);bottom:-150px;left:-200px}
+.orb-3{width:350px;height:350px;background:radial-gradient(circle,rgba(181,242,60,.04),transparent);top:45%;left:55%}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:9999;transition:opacity .6s,visibility .6s}
+#loader.out{opacity:0;visibility:hidden;pointer-events:none}
+.l-rings{position:relative;width:80px;height:80px}
+.l-r1{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--em);animation:spin 1s linear infinite}
+.l-r2{position:absolute;inset:10px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--em-glow);animation:spinR 1.3s linear infinite}
+.l-r3{position:absolute;inset:20px;border-radius:50%;border:1px solid transparent;border-left-color:var(--sky);animation:spin 1.8s linear infinite}
+.l-dot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;animation:blink 1.5s ease-in-out infinite}
+.l-brand{font-family:var(--ff-h);font-size:1.4rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;background:linear-gradient(135deg,var(--em),var(--em-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.l-tagline{font-size:.72rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase}
+.l-bar-w{width:180px;height:2px;background:var(--surf2);border-radius:99px;overflow:hidden;margin-top:8px}
+.l-bar{height:100%;background:linear-gradient(90deg,var(--em),var(--em-glow),var(--sky));animation:lbar 1.6s cubic-bezier(.4,0,.2,1) forwards}
+
+/* ── TOASTS ── */
+#toasts{position:fixed;top:20px;right:20px;z-index:9500;display:flex;flex-direction:column;gap:10px;max-width:360px;width:calc(100% - 40px)}
+.toast{padding:13px 16px;border-radius:14px;background:rgba(10,26,16,.95);border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;font-size:.83rem;color:var(--text);box-shadow:var(--sh2),inset 0 1px 0 rgba(255,255,255,.05);animation:toastIn .35s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(20px);transition:opacity .4s,transform .4s}
+.toast.out{opacity:0;transform:translateX(20px)}
+.toast.success{border-color:rgba(181,242,60,.3)}
+.toast.error{border-color:rgba(239,68,68,.3)}
+.toast.warn{border-color:rgba(245,158,11,.3)}
+.toast.info{border-color:var(--border2)}
+.ti{font-size:1.1rem;margin-top:1px;flex-shrink:0}
+.toast.success .ti{color:var(--lime)}.toast.error .ti{color:var(--crimson)}.toast.warn .ti{color:var(--amber)}.toast.info .ti{color:var(--em)}
+.toast-body{flex:1}
+.toast-title{font-weight:700;font-size:.82rem;margin-bottom:2px}
+.toast-msg{font-size:.78rem;color:var(--text2)}
+.tc{margin-left:auto;background:none;border:none;color:var(--text3);font-size:.82rem;cursor:pointer;padding:2px;transition:color .2s;margin-top:1px}
+.tc:hover{color:var(--text)}
+
+/* ── LANDING ── */
+#landing{min-height:100vh;position:relative;overflow:hidden;display:none;flex-direction:column}
+#landing.active{display:flex}
+.land-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:18px 60px;border-bottom:1px solid var(--border);background:rgba(5,14,9,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.logo{display:flex;align-items:center;gap:10px;cursor:default}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--em),var(--sky));display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:var(--void);font-family:var(--ff-h);box-shadow:var(--glow-sm)}
+.logo-text{font-family:var(--ff-h);font-size:1.2rem;font-weight:700;color:var(--text)}
+.logo-text em{font-style:normal;color:var(--em)}
+.nav-badge{font-size:.62rem;font-weight:700;background:rgba(0,200,150,.12);border:1px solid var(--border2);color:var(--em);padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.06em;margin-left:8px}
+.land-nav-r{display:flex;align-items:center;gap:10px}
+.btn-ghost{padding:8px 20px;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:.85rem;font-weight:500;transition:all .2s;cursor:pointer}
+.btn-ghost:hover{border-color:var(--em);color:var(--em);background:rgba(0,200,150,.06)}
+.btn-em{padding:9px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-size:.85rem;font-weight:700;transition:all .25s;cursor:pointer;box-shadow:0 2px 12px rgba(0,200,150,.2)}
+.btn-em:hover{transform:translateY(-2px);box-shadow:0 4px 24px rgba(0,255,185,.3)}
+
+/* ── HERO ── */
+.hero{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:90px 24px 70px;position:relative;z-index:1}
+.hero-ey{display:inline-flex;align-items:center;gap:8px;background:rgba(0,200,150,.08);border:1px solid var(--border2);border-radius:99px;padding:6px 16px;font-size:.72rem;font-weight:700;color:var(--em);text-transform:uppercase;letter-spacing:.1em;margin-bottom:28px;animation:fadeUp .7s ease both}
+.ey-dot{width:6px;height:6px;border-radius:50%;background:var(--em-glow);animation:pulse 1.8s infinite;display:inline-block;box-shadow:0 0 8px var(--em-glow)}
+.hero-h1{font-family:var(--ff-h);font-size:clamp(2.6rem,5.5vw,5.5rem);font-weight:700;line-height:1.06;letter-spacing:-.04em;max-width:860px;animation:fadeUp .7s .1s ease both}
+.gr{background:linear-gradient(135deg,var(--em-glow) 0%,var(--sky) 60%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{margin-top:22px;font-size:1.08rem;color:var(--text2);max-width:580px;line-height:1.75;animation:fadeUp .7s .2s ease both;font-weight:300}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:38px;animation:fadeUp .7s .3s ease both}
+.btn-hp{padding:15px 34px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-weight:700;font-size:.95rem;display:inline-flex;align-items:center;gap:9px;transition:all .25s;box-shadow:0 4px 24px rgba(0,200,150,.3),inset 0 1px 0 rgba(255,255,255,.2);cursor:pointer}
+.btn-hp:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(0,200,150,.4)}
+.btn-hs{padding:14px 32px;border-radius:14px;border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--text);font-weight:600;font-size:.95rem;display:flex;align-items:center;gap:9px;transition:all .25s;backdrop-filter:blur(12px);cursor:pointer}
+.btn-hs:hover{border-color:var(--em);color:var(--em);background:rgba(0,200,150,.06);transform:translateY(-2px)}
+
+/* ── PULSE RING ── */
+.pulse-wrap{position:relative;width:280px;height:280px;margin:56px auto 0;animation:fadeUp .7s .4s ease both}
+.p-ring{width:100%;height:100%;border-radius:50%;position:relative}
+.p-ring-outer{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,var(--em-glow) 0%,var(--em) 30%,var(--sky) 55%,var(--teal) 75%,var(--em-glow) 100%);animation:ringRot 7s linear infinite}
+.p-ring-outer::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--void)}
+.p-ring-middle{position:absolute;inset:14px;border-radius:50%;border:1px dashed rgba(0,200,150,.2);animation:ringRot 12s linear infinite reverse}
+.p-ring-inner{position:absolute;inset:20px;border-radius:50%;background:radial-gradient(circle at 38% 32%,var(--void3),var(--void));border:1px solid var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:inset 0 0 30px rgba(0,0,0,.4)}
+.pn{font-family:var(--ff-m);font-size:2.4rem;font-weight:600;color:var(--em-glow);line-height:1;animation:float 4s ease-in-out infinite;text-shadow:0 0 20px rgba(0,255,185,.4)}
+.pu{font-size:.68rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.12em}
+.pl{font-size:.7rem;color:var(--text3);margin-top:3px}
+
+/* Orbit dots */
+.orbit-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--em-glow);box-shadow:0 0 10px var(--em-glow)}
+.orbit-dot:nth-child(1){top:4%;left:50%;transform:translateX(-50%);animation:float 3s .2s ease-in-out infinite}
+.orbit-dot:nth-child(2){bottom:4%;left:50%;transform:translateX(-50%);animation:float 3s 1s ease-in-out infinite;background:var(--sky);box-shadow:0 0 10px var(--sky)}
+.orbit-dot:nth-child(3){left:4%;top:50%;transform:translateY(-50%);animation:float 3s 1.5s ease-in-out infinite;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+
+/* Satellites */
+.satellite{position:absolute;background:rgba(10,26,16,.92);border:1px solid var(--border2);border-radius:14px;padding:10px 15px;display:flex;align-items:center;gap:10px;font-size:.76rem;font-weight:600;color:var(--text);backdrop-filter:blur(12px);white-space:nowrap;box-shadow:var(--sh),var(--glow-sm)}
+.sat-1{top:6%;right:-18%;animation:floatR 3.5s .0s ease-in-out infinite}
+.sat-2{bottom:16%;left:-22%;animation:floatR 4s 1.2s ease-in-out infinite}
+.sat-3{top:50%;right:-24%;animation:floatR 3.8s .7s ease-in-out infinite}
+.sat-ic{font-size:1.2rem}
+.sat-val{font-family:var(--ff-m);font-weight:700;font-size:.85rem}
+
+/* ── STATS STRIP ── */
+.stats-strip{position:relative;z-index:1;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(10,26,16,.5),rgba(15,36,24,.7),rgba(10,26,16,.5));backdrop-filter:blur(16px);padding:28px 60px;display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.s-item{text-align:center;padding:0 48px;position:relative}
+.s-item+.s-item::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:1px;height:32px;background:var(--border)}
+.s-num{font-family:var(--ff-m);font-size:2rem;font-weight:600;color:var(--em);line-height:1;text-shadow:0 0 20px rgba(0,200,150,.2)}
+.s-lbl{font-size:.72rem;color:var(--text2);margin-top:5px;font-weight:500;letter-spacing:.04em}
+
+/* ── FEATURES ── */
+.feat-section{position:relative;z-index:1;padding:80px 60px}
+.feat-header{text-align:center;margin-bottom:50px}
+.feat-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:.7rem;font-weight:700;color:var(--em);text-transform:uppercase;letter-spacing:.12em;background:rgba(0,200,150,.07);border:1px solid var(--border);border-radius:99px;padding:4px 12px;margin-bottom:14px}
+.feat-title{font-family:var(--ff-h);font-size:2.4rem;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.feat-sub{font-size:.95rem;color:var(--text2);margin-top:10px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);overflow:hidden;border-radius:var(--r2)}
+.feat{background:var(--void2);padding:32px;transition:background .2s,transform .2s;position:relative;overflow:hidden}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--em),transparent);opacity:0;transition:opacity .3s}
+.feat:hover{background:var(--void3)}
+.feat:hover::before{opacity:1}
+.feat-icon{width:46px;height:46px;border-radius:14px;background:rgba(0,200,150,.1);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--em);margin-bottom:18px;transition:background .2s,box-shadow .2s}
+.feat:hover .feat-icon{background:rgba(0,200,150,.18);box-shadow:0 0 20px rgba(0,200,150,.15)}
+.feat-t{font-family:var(--ff-h);font-weight:600;font-size:1rem;color:var(--text);margin-bottom:8px}
+.feat-d{font-size:.84rem;color:var(--text2);line-height:1.65}
+.feat-arrow{position:absolute;bottom:20px;right:20px;color:var(--text4);font-size:.85rem;transition:all .2s;opacity:0}
+.feat:hover .feat-arrow{opacity:1;color:var(--em);transform:translateX(3px)}
+
+/* ── CTA STRIP ── */
+.cta-strip{position:relative;z-index:1;margin:0 60px 80px;background:linear-gradient(135deg,var(--void3),var(--void4));border:1px solid var(--border2);border-radius:var(--r3);padding:60px;text-align:center;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:18px;justify-content:center}
+.cta-strip::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(0,200,150,.06),transparent);pointer-events:none}
+.cta-t{font-family:var(--ff-h);font-size:2rem;font-weight:700;color:var(--text);margin-bottom:12px}
+.cta-s{font-size:.95rem;color:var(--text2);margin-bottom:28px}
+
+/* ── AUTH MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(5,14,9,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.active{display:flex}
+.modal{background:linear-gradient(160deg,var(--void2),var(--void3));border:1px solid var(--border2);border-radius:var(--r3);padding:38px;width:100%;max-width:440px;position:relative;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);box-shadow:var(--sh2),var(--glow-md)}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--surf);border:none;color:var(--text2);width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.88rem;transition:all .2s;cursor:pointer}
+.modal-close:hover{background:var(--surf2);color:var(--text);transform:rotate(90deg)}
+.modal-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.modal-title{font-family:var(--ff-h);font-size:1.45rem;font-weight:700;color:var(--text);margin-bottom:5px}
+.modal-sub{font-size:.84rem;color:var(--text2);margin-bottom:24px;line-height:1.6}
+.tab-row{display:flex;background:var(--surf);border-radius:12px;padding:4px;margin-bottom:24px}
+.tab-btn{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:var(--text2);font-size:.85rem;font-weight:600;transition:all .2s;cursor:pointer}
+.tab-btn.active{background:var(--void3);color:var(--em);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.form-g{margin-bottom:15px}
+.form-lbl{font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.form-inp{width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:.9rem;transition:all .2s;outline:none}
+.form-inp:focus{border-color:var(--em);background:rgba(0,200,150,.04);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.form-inp::placeholder{color:var(--text4)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-sub{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-weight:700;font-size:.95rem;transition:all .25s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;box-shadow:0 4px 16px rgba(0,200,150,.25)}
+.btn-sub:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,200,150,.35)}
+.btn-sub:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.auth-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:11px 14px;font-size:.82rem;color:#fca5a5;margin-bottom:14px;display:none;animation:fadeIn .2s ease}
+.auth-err.show{display:flex;align-items:flex-start;gap:8px}
+.demo-note{text-align:center;margin-top:18px;font-size:.76rem;color:var(--text3)}
+.demo-note button{background:none;border:none;color:var(--em);font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ── APP SHELL ── */
+#app{display:none;min-height:100vh}
+#app.active{display:flex}
+
+/* SIDEBAR */
+.sidebar{width:244px;flex-shrink:0;background:linear-gradient(180deg,var(--void2),var(--void));border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sb-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-head-info{flex:1}
+.sb-version{font-size:.6rem;color:var(--text3);font-family:var(--ff-m);margin-top:1px}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 0;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+.sb-sec{font-size:.62rem;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.14em;padding:16px 20px 6px}
+.sb-item{display:flex;align-items:center;gap:11px;padding:9px 18px 9px 20px;cursor:pointer;font-size:.855rem;font-weight:500;color:var(--text2);transition:all .15s;border-left:2px solid transparent;user-select:none}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.sb-item.active{color:var(--em);background:rgba(0,200,150,.07);border-left-color:var(--em)}
+.sb-item i{width:17px;text-align:center;font-size:.88rem;opacity:.8}
+.sb-item.active i{opacity:1}
+.sb-pill{margin-left:auto;font-size:.62rem;font-weight:700;background:rgba(0,200,150,.15);color:var(--em);padding:2px 7px;border-radius:99px}
+.sb-divider{height:1px;background:var(--border);margin:8px 16px}
+.sb-foot{padding:14px;border-top:1px solid var(--border);background:rgba(0,0,0,.1)}
+.user-chip{display:flex;align-items:center;gap:9px;padding:10px;border-radius:12px;cursor:default;transition:background .15s}
+.user-chip:hover{background:var(--surf)}
+.user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--em),var(--sky));display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--void);flex-shrink:0;box-shadow:var(--glow-sm)}
+.user-nm{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.2}
+.user-role{font-size:.68rem;color:var(--text3);margin-top:2px}
+.logout-btn{margin-left:auto;background:none;border:none;color:var(--text3);font-size:.88rem;padding:5px;transition:all .2s;cursor:pointer;border-radius:6px}
+.logout-btn:hover{color:var(--crimson);background:rgba(239,68,68,.08)}
+
+/* MAIN + TOPBAR */
+.main{margin-left:244px;flex:1;min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(5,14,9,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 26px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.tb-menu{display:none;background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;padding:4px;border-radius:7px;transition:color .2s}
+.tb-menu:hover{color:var(--em)}
+.tb-title{font-family:var(--ff-h);font-size:.98rem;font-weight:600;color:var(--text)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.score-chip{display:flex;align-items:center;gap:6px;background:rgba(0,200,150,.08);border:1px solid var(--border2);border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:var(--em);font-family:var(--ff-m);transition:all .2s;cursor:pointer}
+.score-chip:hover{background:rgba(0,200,150,.14);box-shadow:var(--glow-sm)}
+.api-dot{width:8px;height:8px;border-radius:50%;background:var(--em-glow);box-shadow:0 0 8px var(--em-glow);cursor:help;transition:all .3s}
+.api-dot.off{background:var(--crimson);box-shadow:0 0 8px var(--crimson);animation:none}
+.api-dot.checking{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 1s infinite}
+
+/* PAGES */
+.page{display:none;padding:28px;flex:1;animation:fadeIn .3s ease}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.ph{margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.ph-ey{font-size:.68rem;font-weight:700;color:var(--em);text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ph-ey::before{content:'';width:16px;height:2px;background:var(--em);border-radius:99px}
+.ph-t{font-family:var(--ff-h);font-size:1.65rem;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-.02em}
+.ph-s{font-size:.875rem;color:var(--text2);max-width:580px;line-height:1.6}
+.ph-act{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* CARDS */
+.card{background:var(--void2);border:1px solid var(--border);border-radius:var(--r2);transition:border-color .2s,box-shadow .2s}
+.card:hover{border-color:var(--border2)}
+.cp{padding:24px}.cps{padding:18px}.cpx{padding:28px}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.sc-card{padding:22px;position:relative;overflow:hidden;cursor:default}
+.sc-card::after{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,150,.07),transparent);pointer-events:none}
+.sc-card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);pointer-events:none}
+.sc-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:16px;flex-shrink:0}
+.ic-g{background:rgba(0,200,150,.12);color:var(--em)}
+.ic-b{background:rgba(34,211,238,.12);color:var(--sky)}
+.ic-l{background:rgba(181,242,60,.12);color:var(--lime)}
+.ic-a{background:rgba(245,158,11,.12);color:var(--amber)}
+.ic-p{background:rgba(139,92,246,.12);color:var(--purple)}
+.sc-val{font-family:var(--ff-m);font-size:1.8rem;font-weight:600;color:var(--text);line-height:1}
+.sc-lbl{font-size:.78rem;color:var(--text2);margin-top:5px;font-weight:500}
+.sc-chg{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:99px;margin-top:9px}
+.chg-g{background:rgba(181,242,60,.1);color:var(--lime)}
+.chg-b{background:rgba(239,68,68,.1);color:#fca5a5}
+.chg-n{background:rgba(245,158,11,.1);color:var(--amber)}
+.chg-sky{background:rgba(34,211,238,.1);color:var(--sky)}
+
+/* CHART CARDS */
+.cc{padding:22px}
+.cc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.cc-t{font-family:var(--ff-h);font-size:.95rem;font-weight:600;color:var(--text)}
+.cc-s{font-size:.73rem;color:var(--text3);margin-top:3px}
+.cc-tag{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(0,200,150,.08);color:var(--em);border:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+
+/* SKELETON */
+.sk{background:linear-gradient(90deg,var(--surf) 25%,var(--surf2) 50%,var(--surf) 75%);background-size:200% 100%;animation:shimmer 1.8s infinite;border-radius:8px}
+.sk-l{height:13px;border-radius:4px;margin-bottom:9px}
+.sk-h{height:30px;border-radius:7px;margin-bottom:13px}
+.sk-b{height:180px;border-radius:14px}
+.sk-sm{height:9px;border-radius:3px}
+
+/* LAYOUT GRIDS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.mt4{margin-top:16px}.mt6{margin-top:24px}.mb4{margin-bottom:16px}.mb6{margin-bottom:24px}
+.text-em{color:var(--em)}.text-sky{color:var(--sky)}.text-lime{color:var(--lime)}.text-amber{color:var(--amber)}
+.mono{font-family:var(--ff-m)}
+
+/* BUTTONS (app) */
+.btn-sm{padding:7px 15px;border-radius:9px;border:1px solid var(--border);background:var(--surf);color:var(--text2);font-size:.78rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.btn-sm:hover{border-color:var(--em);color:var(--em);background:rgba(0,200,150,.05)}
+.btn-danger{padding:7px 15px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#fca5a5;font-size:.78rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.btn-danger:hover{background:rgba(239,68,68,.12);border-color:var(--crimson)}
+.btn-primary{padding:11px 22px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-weight:700;font-size:.88rem;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(0,200,150,.2)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,200,150,.3)}
+.sec-tag{display:inline-flex;align-items:center;gap:7px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--em);background:rgba(0,200,150,.07);border:1px solid var(--border);border-radius:99px;padding:3px 11px;margin-bottom:14px}
+.empty-s{text-align:center;padding:56px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty-ic{font-size:2.8rem;opacity:.25;filter:grayscale(.3)}
+.empty-t{font-size:.88rem;color:var(--text2);max-width:260px;line-height:1.6}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.tag-badge{font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:99px;background:rgba(0,200,150,.09);color:var(--em);border:1px solid var(--border)}
+
+/* ── CALCULATOR ── */
+.calc-layout{display:grid;grid-template-columns:1fr 390px;gap:22px;align-items:start}
+.c-sec{margin-bottom:22px}
+.c-sec-t{font-size:.7rem;font-weight:700;color:var(--em);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.c-sec-t::after{content:'';flex:1;height:1px;background:var(--border)}
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.mode-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 8px;border-radius:12px;border:1px solid var(--border);background:var(--surf);color:var(--text2);font-size:.74rem;font-weight:600;transition:all .2s;cursor:pointer;width:100%;position:relative}
+.mode-btn:hover{border-color:var(--border2);background:var(--surf2);color:var(--text)}
+.mode-btn.active{border-color:var(--em);background:rgba(0,200,150,.09);color:var(--em);box-shadow:0 0 14px rgba(0,200,150,.1)}
+.mode-btn .mi{font-size:1.35rem}
+.mode-km{width:100%;padding:7px 10px;background:rgba(0,200,150,.05);border:1px solid var(--em-dim);border-radius:8px;color:var(--em);font-size:.8rem;font-family:var(--ff-m);outline:none;transition:border-color .2s;margin-top:5px;text-align:center;display:none}
+.mode-km:focus{border-color:var(--em);box-shadow:0 0 0 2px rgba(0,200,150,.1)}
+.mode-km::placeholder{color:var(--text3)}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.f-fld{display:flex;flex-direction:column;gap:5px}
+.f-fld label{font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
+.f-fld input,.f-fld select{padding:10px 13px;background:var(--surf);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;transition:all .2s}
+.f-fld input:focus,.f-fld select:focus{border-color:var(--em);background:rgba(0,200,150,.04);box-shadow:0 0 0 2px rgba(0,200,150,.08)}
+.f-fld select option{background:var(--void2);color:var(--text)}
+.food-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.food-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:13px;border:1px solid var(--border);background:var(--surf);cursor:pointer;transition:all .2s;position:relative}
+.food-card:hover{border-color:var(--border2);background:var(--surf2)}
+.food-card.active{border-color:var(--em);background:rgba(0,200,150,.09);box-shadow:0 0 16px rgba(0,200,150,.1)}
+.food-card .fi{font-size:1.7rem}
+.food-card .fn{font-size:.7rem;font-weight:700;color:var(--text2)}
+.food-card.active .fn{color:var(--em)}
+.food-card .fco2{font-family:var(--ff-m);font-size:.62rem;color:var(--text3)}
+.food-card.active .fco2{color:var(--em-dim)}
+.btn-calc{width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-weight:700;font-size:.98rem;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .25s;margin-top:10px;box-shadow:0 4px 20px rgba(0,200,150,.22),inset 0 1px 0 rgba(255,255,255,.2);cursor:pointer}
+.btn-calc:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,200,150,.35)}
+.btn-calc:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* RESULT PANEL */
+.result-panel{position:sticky;top:74px}
+.r-hero{text-align:center;padding:28px 22px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(0,200,150,.05),transparent)}
+.r-lbl{font-size:.67rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
+.r-big{font-family:var(--ff-m);font-size:3.8rem;font-weight:600;line-height:1;color:var(--em-glow);transition:color .5s,text-shadow .5s;text-shadow:0 0 30px rgba(0,255,185,.2)}
+.r-big.med{color:var(--amber);text-shadow:0 0 30px rgba(245,158,11,.2)}
+.r-big.high{color:var(--crimson);text-shadow:0 0 30px rgba(239,68,68,.2)}
+.r-unit{font-size:.8rem;color:var(--text2);margin-top:6px}
+.r-status{display:inline-flex;align-items:center;gap:6px;font-size:.77rem;font-weight:700;padding:5px 13px;border-radius:99px;margin-top:12px}
+.rs-good{background:rgba(181,242,60,.1);color:var(--lime)}
+.rs-med{background:rgba(245,158,11,.1);color:var(--amber)}
+.rs-bad{background:rgba(239,68,68,.1);color:#fca5a5}
+.rs-null{background:var(--surf);color:var(--text2)}
+.compare-row{display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.cmp-item{flex:1;text-align:center;padding:10px 8px;background:var(--surf);border-radius:10px;border:1px solid var(--border)}
+.cmp-label{font-size:.62rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.cmp-val{font-family:var(--ff-m);font-size:.95rem;font-weight:600;color:var(--text2)}
+.cmp-val.better{color:var(--lime)}.cmp-val.worse{color:var(--crimson)}
+.bk-list{padding:14px 16px}
+.bk-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,200,150,.07)}
+.bk-row:last-child{border-bottom:none}
+.bk-ic{font-size:1rem;width:22px;text-align:center;flex-shrink:0}
+.bk-nm{font-size:.77rem;font-weight:600;color:var(--text2);min-width:78px}
+.bk-bw{flex:1;height:4px;background:var(--surf2);border-radius:99px;overflow:hidden}
+.bk-bf{height:100%;background:linear-gradient(90deg,var(--em),var(--sky));border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bk-v{font-family:var(--ff-m);font-size:.73rem;color:var(--text2);min-width:50px;text-align:right}
+.r-trees{padding:16px 18px;text-align:center;border-top:1px solid var(--border);background:rgba(0,200,150,.03)}
+.trees-n{font-family:var(--ff-m);font-size:2.2rem;font-weight:600;color:var(--em);line-height:1}
+.trees-l{font-size:.73rem;color:var(--text2);margin-top:5px}
+.log-btn{margin:12px 16px 16px;width:calc(100% - 32px);padding:11px;border-radius:11px;border:1px solid var(--em);background:rgba(0,200,150,.07);color:var(--em);font-weight:700;font-size:.84rem;transition:all .2s;display:none;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.log-btn:hover{background:var(--em);color:var(--void);box-shadow:var(--glow-sm)}
+
+/* ── GOALS ── */
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:20px}
+.goal-card{padding:22px}
+.goal-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:8px}
+.goal-cat{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--em);background:rgba(0,200,150,.09);border:1px solid var(--border);border-radius:99px;padding:3px 9px;white-space:nowrap}
+.goal-del{background:none;border:none;color:var(--text3);font-size:.82rem;padding:3px 5px;transition:all .2s;cursor:pointer;border-radius:6px}
+.goal-del:hover{color:var(--crimson);background:rgba(239,68,68,.08)}
+.goal-title{font-family:var(--ff-h);font-weight:600;color:var(--text);margin-bottom:4px;font-size:.95rem;line-height:1.3}
+.goal-desc{font-size:.77rem;color:var(--text2);margin-bottom:14px;line-height:1.55}
+.prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.prog-pct{font-family:var(--ff-m);font-size:1rem;font-weight:600;color:var(--em)}
+.prog-vals{font-size:.7rem;color:var(--text3);font-family:var(--ff-m)}
+.prog-bg{height:7px;background:var(--surf2);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--em),var(--lime));border-radius:99px;transition:width .9s cubic-bezier(.4,0,.2,1);position:relative}
+.prog-fill::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime);margin-right:-6px}
+.goal-update-row{display:flex;gap:8px;margin-bottom:12px}
+.goal-inp{flex:1;padding:8px 12px;background:var(--surf);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .2s;font-family:var(--ff-m)}
+.goal-inp:focus{border-color:var(--em);background:rgba(0,200,150,.04)}
+.goal-inp::placeholder{color:var(--text4)}
+.goal-ft{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.goal-days{font-size:.7rem;color:var(--text3)}
+.gsc{font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:99px}
+.gsc-a{background:rgba(0,200,150,.1);color:var(--em)}.gsc-d{background:rgba(181,242,60,.1);color:var(--lime)}
+.add-goal{border:2px dashed rgba(0,200,150,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:36px;cursor:pointer;transition:all .25s;border-radius:var(--r2);background:transparent;width:100%;text-align:center;color:var(--text2);font-size:.85rem;font-weight:500}
+.add-goal:hover{border-color:var(--em);color:var(--em);background:rgba(0,200,150,.04);box-shadow:var(--glow-sm)}
+.add-goal i{font-size:1.8rem;color:var(--em);opacity:.7}
+
+/* Goal modal */
+.goal-modal-box{max-width:490px}
+
+/* ── RECOMMENDATIONS / CHAT ── */
+.rec-layout{display:grid;grid-template-columns:1fr 330px;gap:20px;align-items:start}
+.chat-card{overflow:hidden}
+.chat-top{padding:16px 20px;background:linear-gradient(135deg,rgba(0,200,150,.9),rgba(34,211,238,.8));display:flex;align-items:center;gap:12px;backdrop-filter:blur(8px)}
+.bot-av{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.bot-nm{font-family:var(--ff-h);font-weight:700;color:rgba(5,14,9,.9);font-size:.92rem}
+.bot-st{font-size:.7rem;color:rgba(5,14,9,.55);margin-top:1px}
+.chat-get-btn{margin-left:auto;background:rgba(5,14,9,.2);border:1px solid rgba(5,14,9,.2);border-radius:9px;color:rgba(5,14,9,.8);padding:7px 14px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.chat-get-btn:hover{background:rgba(5,14,9,.3)}
+.chat-body{height:400px;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.chat-body::-webkit-scrollbar{width:3px}
+.msg{display:flex;gap:10px;animation:msgIn .35s ease}
+.msg.user{flex-direction:row-reverse}
+.m-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem}
+.av-bot{background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void)}
+.av-usr{background:var(--surf2);color:var(--text2)}
+.m-bub{max-width:78%;padding:11px 15px;border-radius:18px;font-size:.84rem;line-height:1.65}
+.bub-bot{background:var(--void3);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+.bub-usr{background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);font-weight:500;border-bottom-right-radius:4px}
+.typing{display:flex;gap:5px;align-items:center;padding:5px 0}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--em);animation:typeDot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+.chat-ft{border-top:1px solid var(--border);padding:14px 16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{padding:5px 13px;border-radius:99px;border:1px solid var(--border);background:transparent;font-size:.74rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .18s;white-space:nowrap}
+.chip:hover{border-color:var(--em);color:var(--em);background:rgba(0,200,150,.06)}
+.ci-row{display:flex;gap:8px}
+.ci{flex:1;padding:9px 14px;background:var(--surf);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:.84rem;outline:none;transition:all .2s}
+.ci:focus{border-color:var(--em);background:rgba(0,200,150,.04);box-shadow:0 0 0 2px rgba(0,200,150,.08)}
+.ci::placeholder{color:var(--text4)}
+.ci-send{width:40px;height:40px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--em),var(--sky));color:var(--void);display:flex;align-items:center;justify-content:center;transition:all .2s;cursor:pointer;flex-shrink:0;font-size:.92rem}
+.ci-send:hover{transform:scale(1.08);box-shadow:var(--glow-sm)}
+.tip-row{padding:14px 16px;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid rgba(0,200,150,.07);transition:background .15s}
+.tip-row:hover{background:rgba(0,200,150,.03)}
+.tip-row:last-child{border-bottom:none}
+.tip-ic{width:36px;height:36px;border-radius:11px;background:rgba(0,200,150,.1);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.tip-txt{font-size:.82rem;color:var(--text);line-height:1.55}
+.tip-sv{font-size:.7rem;color:var(--em);font-weight:600;margin-top:3px;font-family:var(--ff-m)}
+
+/* ── ECO SCORE ── */
+.score-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+.sr-wrap{position:relative;width:210px;height:210px;margin:0 auto 22px}
+.sr-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.sr-track{fill:none;stroke:var(--surf2);stroke-width:11}
+.sr-fill{fill:none;stroke:url(#rg);stroke-width:11;stroke-linecap:round;stroke-dasharray:565;stroke-dashoffset:565;transition:stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 8px rgba(0,200,150,.3))}
+.sr-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sr-big{font-family:var(--ff-m);font-size:3rem;font-weight:600;color:var(--em-glow);line-height:1;text-shadow:0 0 20px rgba(0,255,185,.3);animation:countUp .5s ease}
+.sr-of{font-size:.72rem;color:var(--text2);font-weight:600;margin-top:2px}
+.sr-grade{font-family:var(--ff-m);font-size:1.1rem;font-weight:600;color:var(--em);margin-top:3px}
+.badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.badge-item{text-align:center;padding:16px 8px;border-radius:14px;border:1px solid var(--border);transition:all .22s;position:relative}
+.badge-item.unlocked{background:rgba(0,200,150,.05);border-color:rgba(0,200,150,.22)}
+.badge-item.locked{opacity:.3;filter:grayscale(.5)}
+.badge-item.unlocked:hover{transform:translateY(-3px);box-shadow:var(--glow-sm);border-color:var(--border3)}
+.b-em{font-size:1.9rem;margin-bottom:7px;display:block}
+.b-nm{font-size:.7rem;font-weight:700;color:var(--text);line-height:1.2}
+.b-ds{font-size:.62rem;color:var(--text3);margin-top:3px}
+.unlocked-badge{position:absolute;top:8px;right:8px;width:14px;height:14px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:.5rem;color:var(--void)}
+.score-bkd{margin-top:20px;display:flex;flex-direction:column;gap:11px}
+.sb-row{display:flex;align-items:center;gap:10px}
+.sb-cat{font-size:.74rem;font-weight:600;color:var(--text2);min-width:82px}
+.sb-track{flex:1;height:6px;background:var(--surf2);border-radius:99px;overflow:hidden}
+.sb-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--em),var(--sky));transition:width .8s ease}
+.sb-pts{font-family:var(--ff-m);font-size:.7rem;color:var(--em);min-width:52px;text-align:right}
+
+/* ── PREDICTION ── */
+.pred-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px}
+.pred-card{padding:22px;text-align:center;position:relative;overflow:hidden}
+.pred-card::after{content:'';position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.1),transparent)}
+.pred-trend-ic{font-size:2rem;margin-bottom:8px}
+.pred-val{font-family:var(--ff-m);font-size:1.6rem;font-weight:600;color:var(--sky);line-height:1}
+.pred-lbl{font-size:.73rem;color:var(--text2);margin-top:5px;line-height:1.4}
+
+/* ── LEADERBOARD ── */
+.lb-ctrls{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.lb-tog{padding:7px 18px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;transition:all .2s;cursor:pointer}
+.lb-tog.active{background:rgba(0,200,150,.1);border-color:var(--em);color:var(--em)}
+.lb-table{overflow:hidden}
+.lb-head{display:flex;align-items:center;gap:14px;padding:11px 20px;background:var(--surf);border-bottom:1px solid var(--border);font-size:.67rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(0,200,150,.07);transition:background .15s;animation:slideIn .3s ease}
+.lb-row:last-child{border-bottom:none}
+.lb-row:hover{background:rgba(255,255,255,.02)}
+.lb-row.mine{background:rgba(0,200,150,.05);border-left:3px solid var(--em)}
+.lb-row.top1{background:linear-gradient(90deg,rgba(245,158,11,.05),transparent)}
+.lb-row.top2{background:linear-gradient(90deg,rgba(148,163,184,.04),transparent)}
+.lb-row.top3{background:linear-gradient(90deg,rgba(180,120,60,.04),transparent)}
+.lb-rank{font-family:var(--ff-m);font-size:1rem;font-weight:700;min-width:34px;color:var(--text3)}
+.rank-g{color:#f59e0b;text-shadow:0 0 8px rgba(245,158,11,.3)}
+.rank-s{color:#94a3b8}
+.rank-b{color:#b4783c}
+.lb-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88rem;color:var(--void);flex-shrink:0}
+.lb-info{flex:1;min-width:0}
+.lb-nm{font-weight:600;font-size:.88rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-loc{font-size:.7rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:4px}
+.lb-sc{font-family:var(--ff-m);font-size:1.35rem;font-weight:600;color:var(--em);min-width:44px;text-align:right}
+.lb-gr{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:7px;background:rgba(0,200,150,.1);color:var(--em);font-family:var(--ff-m);text-align:center}
+.lb-rd{font-size:.74rem;font-weight:700;color:var(--lime);font-family:var(--ff-m);white-space:nowrap;min-width:46px;text-align:right}
+.lb-you-tag{font-size:.62rem;background:rgba(0,200,150,.15);color:var(--em);padding:1px 6px;border-radius:4px;font-weight:700;margin-left:6px;vertical-align:middle}
+
+/* ── CHALLENGES ── */
+.chal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.chal-card{padding:26px;position:relative;overflow:hidden;cursor:default}
+.chal-glow{position:absolute;bottom:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,150,.08),transparent);pointer-events:none}
+.ch-icon{font-size:2.4rem;margin-bottom:16px;display:block;filter:drop-shadow(0 0 8px rgba(0,200,150,.2))}
+.ch-t{font-family:var(--ff-h);font-weight:600;font-size:1rem;color:var(--text);margin-bottom:7px;line-height:1.3}
+.ch-d{font-size:.8rem;color:var(--text2);line-height:1.65;margin-bottom:16px}
+.ch-tags{display:flex;gap:7px;margin-bottom:15px;flex-wrap:wrap}
+.ch-tag{font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(0,200,150,.08);color:var(--em);border:1px solid var(--border)}
+.ch-prog{margin-bottom:16px}
+.ch-pl{font-size:.71rem;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between}
+.ch-bar{height:6px;background:var(--surf2);border-radius:99px;overflow:hidden}
+.ch-fill{height:100%;background:linear-gradient(90deg,var(--em),var(--lime));border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.join-btn{width:100%;padding:11px;border-radius:11px;border:1px solid var(--em);background:rgba(0,200,150,.06);color:var(--em);font-weight:700;font-size:.82rem;transition:all .22s;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.join-btn:hover{background:rgba(0,200,150,.15);box-shadow:var(--glow-sm)}
+.join-btn.joined{background:var(--em);color:var(--void);border-color:var(--em);box-shadow:0 4px 16px rgba(0,200,150,.3)}
+
+/* ── BOTTOM NAV ── */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(10,26,16,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);padding:6px 0 env(safe-area-inset-bottom);grid-template-columns:repeat(5,1fr)}
+.bn-i{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;cursor:pointer;transition:color .15s;color:var(--text3);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;user-select:none}
+.bn-i.active{color:var(--em)}
+.bn-i i{font-size:1.15rem}
+.bn-i.active i{filter:drop-shadow(0 0 6px rgba(0,200,150,.4))}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1200px){.calc-layout{grid-template-columns:1fr}.result-panel{position:static}}
+@media(max-width:1100px){.rec-layout{grid-template-columns:1fr}.score-layout{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);z-index:250}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .tb-menu{display:flex}
+  .bot-nav{display:grid}
+  .page{padding:18px;padding-bottom:88px}
+  .land-nav{padding:14px 18px}
+  .stats-strip{padding:22px 16px;gap:0}
+  .s-item{padding:0 24px}
+  .feat-section{padding:50px 18px}
+  .cta-strip{margin:0 18px 50px;padding:40px 24px}
+}
+@media(max-width:640px){
+  .form-row{grid-template-columns:1fr}
+  .food-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .three-col{grid-template-columns:1fr}
+  .badge-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-h1{font-size:2.4rem}
+  .mode-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="l-rings">
+    <div class="l-r1"></div><div class="l-r2"></div><div class="l-r3"></div>
+    <div class="l-dot">🌿</div>
+  </div>
+  <div class="l-brand">EcoTrace</div>
+  <div class="l-tagline">Carbon Intelligence Platform</div>
+  <div class="l-bar-w"><div class="l-bar"></div></div>
+</div>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<!-- ══════════ LANDING ══════════ -->
+<div id="landing" class="active">
+  <nav class="land-nav">
+    <div class="logo">
+      <div class="logo-mark">ET</div>
+      <div class="logo-text">Eco<em>Trace</em></div>
+      <span class="nav-badge">v2.0</span>
+    </div>
+    <div class="land-nav-r">
+      <button class="btn-ghost" onclick="openAuth('login')">Sign In</button>
+      <button class="btn-em" onclick="openAuth('register')"><i class="fas fa-leaf"></i> Get Started Free</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-ey"><span class="ey-dot"></span> Carbon Intelligence Platform v2.0</div>
+    <h1 class="hero-h1">Track, Understand &amp; <span class="gr">Reduce Your Carbon</span> Footprint</h1>
+    <p class="hero-sub">Real-time emissions tracking powered by science-grade IPCC data, AI-driven personalised recommendations, and global peer benchmarking — built for serious climate action.</p>
+    <div class="hero-btns">
+      <button class="btn-hp" onclick="openAuth('register')"><i class="fas fa-rocket"></i> Start Tracking Free</button>
+      <button class="btn-hs" onclick="openAuth('login')"><i class="fas fa-chart-pie"></i> Open Dashboard</button>
+    </div>
+    <div class="pulse-wrap">
+      <div class="p-ring">
+        <div class="p-ring-outer"></div>
+        <div class="p-ring-middle"></div>
+        <div class="p-ring-inner">
+          <div class="pn" id="heroPulse">4.2</div>
+          <div class="pu">tonnes CO₂e/yr</div>
+          <div class="pl">world average</div>
+        </div>
+      </div>
+      <div class="orbit-dot"></div>
+      <div class="orbit-dot"></div>
+      <div class="orbit-dot"></div>
+      <div class="satellite sat-1">
+        <span class="sat-ic">🌱</span>
+        <div><div style="font-size:.62rem;color:var(--text2)">CO₂ Saved Today</div><div class="sat-val" style="color:var(--em-glow)">2.4 kg</div></div>
+      </div>
+      <div class="satellite sat-2">
+        <span class="sat-ic">⚡</span>
+        <div><div style="font-size:.62rem;color:var(--text2)">Eco Score</div><div class="sat-val" style="color:var(--sky)">A+</div></div>
+      </div>
+      <div class="satellite sat-3">
+        <span class="sat-ic">🏆</span>
+        <div><div style="font-size:.62rem;color:var(--text2)">Global Rank</div><div class="sat-val" style="color:var(--em)">#1,284</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-strip">
+    <div class="s-item"><div class="s-num" data-target="2400000">0</div><div class="s-lbl">Active Users</div></div>
+    <div class="s-item"><div class="s-num" data-target="840000">0</div><div class="s-lbl">Tonnes CO₂ Saved</div></div>
+    <div class="s-item"><div class="s-num" data-target="12000000">0</div><div class="s-lbl">Trees Funded</div></div>
+    <div class="s-item"><div class="s-num" data-target="195">0</div><div class="s-lbl">Countries</div></div>
+    <div class="s-item"><div class="s-num" data-target="99">0</div><div class="s-lbl">% Uptime</div></div>
+  </div>
+
+  <section class="feat-section">
+    <div class="feat-header">
+      <div class="feat-eyebrow"><i class="fas fa-leaf"></i> Everything you need</div>
+      <div class="feat-title">Built for Real Climate Action</div>
+      <div class="feat-sub">A complete carbon intelligence suite from calculator to prediction, all connected to your live data.</div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat"><div class="feat-icon"><i class="fas fa-calculator"></i></div><div class="feat-t">Precision Calculator</div><div class="feat-d">9 transport modes, LPG/CNG/PNG, electricity kWh, and 4 food preferences — IPCC and DEFRA emission factors.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-chart-line"></i></div><div class="feat-t">Live Analytics Dashboard</div><div class="feat-d">Daily, weekly, monthly, and yearly breakdown with trend analysis, category comparisons, and goal tracking.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-robot"></i></div><div class="feat-t">AI Recommendations</div><div class="feat-d">Rule-based engine always available. Plug in your Gemini API key for truly personalised AI-generated eco tips.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-trophy"></i></div><div class="feat-t">Global Leaderboard</div><div class="feat-d">Rank by sustainability score or lowest footprint. See your exact position, city, and monthly reduction rate.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-brain"></i></div><div class="feat-t">ML Prediction Engine</div><div class="feat-d">Linear regression model trained on your last 90 days forecasts emissions 12 months ahead with trend direction.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+      <div class="feat"><div class="feat-icon"><i class="fas fa-bullseye"></i></div><div class="feat-t">Goal Tracking</div><div class="feat-d">Create custom reduction goals, update progress inline, and watch achievement percentage climb toward 100%.</div><div class="feat-arrow"><i class="fas fa-arrow-right"></i></div></div>
+    </div>
+  </section>
+
+  <div class="cta-strip">
+    <div class="cta-t">Ready to measure your impact?</div>
+    <div class="cta-s">Join thousands who already track, understand, and reduce their carbon footprint with EcoTrace.</div>
+    <button class="btn-hp" onclick="openAuth('register')"><i class="fas fa-leaf"></i> Create Free Account</button>
+  </div>
+</div>
+
+<!-- ══════════ AUTH MODAL ══════════ -->
+<div class="modal-ov" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()"><i class="fas fa-times"></i></button>
+    <div class="modal-logo"><div class="logo-mark">ET</div><div class="logo-text">Eco<em style="font-style:normal;color:var(--em)">Trace</em></div></div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" id="tabReg" onclick="switchTab('register')">Create Account</button>
+    </div>
+    <div class="auth-err" id="authErr"><i class="fas fa-exclamation-circle" style="flex-shrink:0;margin-top:1px"></i><span id="authErrTxt"></span></div>
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="form-g"><label class="form-lbl"><i class="fas fa-envelope" style="opacity:.6"></i> Email</label><input class="form-inp" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="form-g"><label class="form-lbl"><i class="fas fa-lock" style="opacity:.6"></i> Password</label><input class="form-inp" id="loginPwd" type="password" placeholder="Your password" onkeypress="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-sub" onclick="doLogin()" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+      <div class="demo-note">Try demo: <button onclick="fillDemo()">priya@demo.com / Demo@1234</button></div>
+    </div>
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none">
+      <div class="form-row">
+        <div class="form-g"><label class="form-lbl">Full Name</label><input class="form-inp" id="regName" type="text" placeholder="Your name" autocomplete="name"></div>
+        <div class="form-g"><label class="form-lbl">Email</label><input class="form-inp" id="regEmail" type="email" placeholder="you@example.com"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-g"><label class="form-lbl">Password</label><input class="form-inp" id="regPwd" type="password" placeholder="Min. 8 characters"></div>
+        <div class="form-g"><label class="form-lbl">City</label><input class="form-inp" id="regCity" type="text" placeholder="Mumbai"></div>
+      </div>
+      <div class="form-g"><label class="form-lbl">Country</label><input class="form-inp" id="regCountry" type="text" placeholder="India"></div>
+      <button class="btn-sub" onclick="doRegister()" id="regBtn"><i class="fas fa-user-plus"></i> Create Free Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="modal-ov" id="goalModal">
+  <div class="modal goal-modal-box">
+    <button class="modal-close" onclick="closeGoalModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-title">🎯 Create Reduction Goal</div>
+    <div class="modal-sub">Set a target to track your progress towards a lower carbon footprint.</div>
+    <div class="form-g"><label class="form-lbl">Goal Title</label><input class="form-inp" id="goalTitle" placeholder="e.g. Cut transport emissions by 20%"></div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">Category</label>
+        <select class="form-inp" id="goalCat">
+          <option value="overall">🌍 Overall</option><option value="transport">🚗 Transport</option>
+          <option value="electricity">⚡ Electricity</option><option value="food">🥗 Food</option><option value="fuel">🔥 Fuel</option>
+        </select>
+      </div>
+      <div class="form-g"><label class="form-lbl">Target Reduction (kg)</label><input class="form-inp" id="goalTarget" type="number" placeholder="e.g. 50" min="1"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label class="form-lbl">End Date</label><input class="form-inp" id="goalEnd" type="date"></div>
+      <div class="form-g"><label class="form-lbl">Notes (optional)</label><input class="form-inp" id="goalDesc" placeholder="How you'll achieve it"></div>
+    </div>
+    <button class="btn-sub" onclick="submitGoal()"><i class="fas fa-bullseye"></i> Create Goal</button>
+  </div>
+</div>
+
+<!-- ══════════ APP SHELL ══════════ -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="logo-mark">ET</div>
+      <div class="sb-head-info">
+        <div class="logo-text">Eco<em style="font-style:normal;color:var(--em)">Trace</em></div>
+        <div class="sb-version">v2.0 · connected to Flask API</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Main</div>
+      <div class="sb-item active" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</div>
+      <div class="sb-item" onclick="nav('calculator')"><i class="fas fa-calculator"></i> Calculator</div>
+      <div class="sb-item" onclick="nav('goals')"><i class="fas fa-bullseye"></i> Goals</div>
+      <div class="sb-divider"></div>
+      <div class="sb-sec">Insights</div>
+      <div class="sb-item" onclick="nav('recs')"><i class="fas fa-robot"></i> AI Recommendations</div>
+      <div class="sb-item" onclick="nav('score')"><i class="fas fa-star"></i> Eco Score</div>
+      <div class="sb-item" onclick="nav('prediction')"><i class="fas fa-chart-line"></i> ML Prediction</div>
+      <div class="sb-divider"></div>
+      <div class="sb-sec">Community</div>
+      <div class="sb-item" onclick="nav('leaderboard')"><i class="fas fa-trophy"></i> Leaderboard</div>
+      <div class="sb-item" onclick="nav('challenges')"><i class="fas fa-bolt"></i> Challenges</div>
+      <div class="sb-divider"></div>
+      <div class="sb-sec">Export</div>
+      <div class="sb-item" onclick="downloadCSV()"><i class="fas fa-file-csv"></i> Download CSV</div>
+      <div class="sb-item" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Download PDF Report</div>
+    </nav>
+    <div class="sb-foot">
+      <div class="user-chip">
+        <div class="user-av" id="userAv">?</div>
+        <div><div class="user-nm" id="userName">Loading…</div><div class="user-role" id="userRole">Eco Warrior</div></div>
+        <button class="logout-btn" onclick="logout()" title="Sign out"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="tb-menu" onclick="toggleSB()"><i class="fas fa-bars"></i></button>
+      <div class="tb-title" id="topTitle">Dashboard</div>
+      <div class="tb-right">
+        <div class="score-chip" id="topScore" onclick="nav('score')">⚡ --</div>
+        <div class="api-dot checking" id="apiDot" title="Checking API…"></div>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="ph">
+        <div class="ph-ey">Overview</div>
+        <div class="ph-t">Your Carbon Dashboard</div>
+        <div class="ph-s">Real-time snapshot of your environmental impact. Data pulled live from Flask API.</div>
+      </div>
+      <div class="stat-grid" id="dashStats">
+        <div class="card sc-card"><div class="sk sk-h"></div><div class="sk sk-l" style="width:60%"></div></div>
+        <div class="card sc-card"><div class="sk sk-h"></div><div class="sk sk-l" style="width:60%"></div></div>
+        <div class="card sc-card"><div class="sk sk-h"></div><div class="sk sk-l" style="width:60%"></div></div>
+        <div class="card sc-card"><div class="sk sk-h"></div><div class="sk sk-l" style="width:60%"></div></div>
+      </div>
+      <div class="two-col mb6">
+        <div class="card cc">
+          <div class="cc-head"><div><div class="cc-t">Monthly Emission Trend</div><div class="cc-s">Last 12 months · kg CO₂e total</div></div><span class="cc-tag">Trend</span></div>
+          <canvas id="lineChart" height="200"></canvas>
+        </div>
+        <div class="card cc">
+          <div class="cc-head"><div><div class="cc-t">Category Breakdown</div><div class="cc-s">Last 30 days · by source</div></div><span class="cc-tag">30d</span></div>
+          <canvas id="donutChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="card cc">
+        <div class="cc-head"><div><div class="cc-t">Current vs Target by Category</div><div class="cc-s">Monthly kg CO₂e · current vs benchmark</div></div><span class="cc-tag">Goals</span></div>
+        <canvas id="barChart" height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- ── CALCULATOR ── -->
+    <div class="page" id="page-calculator">
+      <div class="ph">
+        <div class="ph-ey">Calculator</div>
+        <div class="ph-t">Calculate My Emissions</div>
+        <div class="ph-s">Enter weekly activity data — IPCC/DEFRA-aligned factors used for all calculations.</div>
+      </div>
+      <div class="calc-layout">
+        <div>
+          <div class="card cp">
+            <div class="c-sec">
+              <div class="c-sec-t"><i class="fas fa-car" style="color:var(--em)"></i> Transportation (km/week per mode)</div>
+              <div class="mode-grid" id="modeGrid"></div>
+            </div>
+            <div class="c-sec mt4">
+              <div class="c-sec-t"><i class="fas fa-bolt" style="color:var(--sky)"></i> Electricity &amp; Cooking Fuel</div>
+              <div class="f-row">
+                <div class="f-fld"><label>Electricity (kWh/month)</label><input type="number" id="c-kwh" placeholder="200" min="0"></div>
+                <div class="f-fld"><label>LPG Cylinders/month</label><input type="number" id="c-lpg" placeholder="1" min="0" step="0.5"></div>
+              </div>
+              <div class="f-row">
+                <div class="f-fld"><label>PNG Gas (m³/month)</label><input type="number" id="c-png" placeholder="0" min="0"></div>
+                <div class="f-fld"><label>CNG (kg/month)</label><input type="number" id="c-cng" placeholder="0" min="0"></div>
+              </div>
+            </div>
+            <div class="c-sec mt4">
+              <div class="c-sec-t"><i class="fas fa-utensils" style="color:var(--lime)"></i> Food Preference</div>
+              <div class="food-grid" id="foodGrid"></div>
+            </div>
+            <button class="btn-calc" onclick="runCalc()" id="calcBtn">
+              <i class="fas fa-leaf"></i> Calculate My Carbon Footprint
+            </button>
+          </div>
+        </div>
+        <!-- RESULT -->
+        <div class="result-panel">
+          <div class="card" id="resultCard">
+            <div class="r-hero">
+              <div class="r-lbl">Annual CO₂ Equivalent</div>
+              <div class="r-big" id="resNum">—</div>
+              <div class="r-unit">tonnes CO₂e / year</div>
+              <div class="r-status rs-null" id="resStatus">Enter your data above to calculate</div>
+            </div>
+            <div class="compare-row" id="compareRow" style="display:none">
+              <div class="cmp-item"><div class="cmp-label">You</div><div class="cmp-val" id="cmpYou">—</div></div>
+              <div class="cmp-item"><div class="cmp-label">India Avg</div><div class="cmp-val" id="cmpIndia">1.7t</div></div>
+              <div class="cmp-item"><div class="cmp-label">World Avg</div><div class="cmp-val" id="cmpWorld">4.5t</div></div>
+            </div>
+            <div class="bk-list" id="bkList">
+              <div class="bk-row"><span class="bk-ic">🚗</span><span class="bk-nm">Transport</span><div class="bk-bw"><div class="bk-bf" style="width:0%"></div></div><span class="bk-v">—</span></div>
+              <div class="bk-row"><span class="bk-ic">⚡</span><span class="bk-nm">Electricity</span><div class="bk-bw"><div class="bk-bf" style="width:0%"></div></div><span class="bk-v">—</span></div>
+              <div class="bk-row"><span class="bk-ic">🔥</span><span class="bk-nm">Fuel</span><div class="bk-bw"><div class="bk-bf" style="width:0%"></div></div><span class="bk-v">—</span></div>
+              <div class="bk-row"><span class="bk-ic">🍽️</span><span class="bk-nm">Food</span><div class="bk-bw"><div class="bk-bf" style="width:0%"></div></div><span class="bk-v">—</span></div>
+            </div>
+            <div class="r-trees">
+              <div class="trees-n" id="treesN">—</div>
+              <div class="trees-l">🌳 trees needed to offset your annual footprint</div>
+            </div>
+            <button class="log-btn" id="logBtn" onclick="logRecord()">
+              <i class="fas fa-save"></i> Save to My Records
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GOALS ── -->
+    <div class="page" id="page-goals">
+      <div class="ph">
+        <div class="ph-ey">Goals</div>
+        <div class="ph-t">My Reduction Goals</div>
+        <div class="ph-s">Set CO₂ reduction targets, track progress, and celebrate milestones.</div>
+        <div class="ph-act">
+          <button class="btn-primary" onclick="openGoalModal()"><i class="fas fa-plus"></i> New Goal</button>
+          <button class="btn-sm" onclick="loadGoals()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+      </div>
+      <div class="goal-grid" id="goalGrid">
+        <div class="card sc-card"><div class="sk sk-h"></div><div class="sk sk-l"></div><div class="sk sk-b" style="height:50px;margin-top:10px"></div></div>
+      </div>
+    </div>
+
+    <!-- ── AI RECOMMENDATIONS ── -->
+    <div class="page" id="page-recs">
+      <div class="ph">
+        <div class="ph-ey">AI-Powered</div>
+        <div class="ph-t">Smart Eco Recommendations</div>
+        <div class="ph-s">Personalised tips generated from your last 30 days of logged activity data.</div>
+      </div>
+      <div class="rec-layout">
+        <div class="card chat-card">
+          <div class="chat-top">
+            <div class="bot-av">🌿</div>
+            <div>
+              <div class="bot-nm">EcoBot AI</div>
+              <div class="bot-st">● Online · Carbon Intelligence Engine</div>
+            </div>
+            <button class="chat-get-btn" onclick="fetchRecs()"><i class="fas fa-magic"></i> Get My Tips</button>
+          </div>
+          <div class="chat-body" id="chatBody">
+            <div class="msg">
+              <div class="m-av av-bot">🌿</div>
+              <div class="m-bub bub-bot">Hi there! 👋 I'm EcoBot, your personal sustainability assistant.<br><br>Click <strong>Get My Tips</strong> above and I'll analyse your recent emissions data to generate personalised recommendations for reducing your carbon footprint. You can also ask me anything below!</div>
+            </div>
+          </div>
+          <div class="chat-ft">
+            <div class="chips">
+              <button class="chip" onclick="quickMsg('🚗 Transport tips')">🚗 Transport</button>
+              <button class="chip" onclick="quickMsg('⚡ Energy savings')">⚡ Energy</button>
+              <button class="chip" onclick="quickMsg('🥗 Food choices')">🥗 Food</button>
+              <button class="chip" onclick="quickMsg('🌳 Offset options')">🌳 Offsets</button>
+              <button class="chip" onclick="quickMsg('🏭 Industry tips')">🏭 Industry</button>
+            </div>
+            <div class="ci-row">
+              <input class="ci" id="chatInp" placeholder="Ask EcoBot anything…" onkeypress="if(event.key==='Enter')sendChat()">
+              <button class="ci-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb4">
+            <div style="padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div class="cc-t">Latest Personalised Tips</div>
+            </div>
+            <div id="tipsList">
+              <div class="empty-s"><div class="empty-ic">💡</div><div class="empty-t">Click "Get My Tips" to generate recommendations based on your real activity data.</div></div>
+            </div>
+          </div>
+          <div class="card cps">
+            <div class="sec-tag"><i class="fas fa-bolt"></i> Always-On Quick Wins</div>
+            <div class="tip-row"><div class="tip-ic">🚲</div><div><div class="tip-txt">Cycle trips under 3 km</div><div class="tip-sv">Saves ~0.12 kg CO₂ per km vs petrol car</div></div></div>
+            <div class="tip-row"><div class="tip-ic">🌡️</div><div><div class="tip-txt">Set AC to 24°C</div><div class="tip-sv">6% less energy use per degree</div></div></div>
+            <div class="tip-row"><div class="tip-ic">🔌</div><div><div class="tip-txt">Unplug idle devices</div><div class="tip-sv">Standby draws 10% of total bill</div></div></div>
+            <div class="tip-row"><div class="tip-ic">🥦</div><div><div class="tip-txt">One meatless day/week</div><div class="tip-sv">Saves ~0.55 kg CO₂ per meal</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ECO SCORE ── -->
+    <div class="page" id="page-score">
+      <div class="ph">
+        <div class="ph-ey">Score</div>
+        <div class="ph-t">My Sustainability Score</div>
+        <div class="ph-s">Computed from your last 30 days of emissions vs global benchmarks.</div>
+      </div>
+      <div class="score-layout">
+        <div>
+          <div class="card cpx" style="text-align:center">
+            <div class="sr-wrap">
+              <svg class="sr-svg" viewBox="0 0 200 200">
+                <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c896"/><stop offset="50%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#b5f23c"/></linearGradient></defs>
+                <circle class="sr-track" cx="100" cy="100" r="90"/>
+                <circle class="sr-fill" id="ringFill" cx="100" cy="100" r="90"/>
+              </svg>
+              <div class="sr-inner">
+                <div class="sr-big" id="scoreBig">—</div>
+                <div class="sr-of">/ 100</div>
+                <div class="sr-grade" id="scoreGrade">—</div>
+              </div>
+            </div>
+            <div style="font-family:var(--ff-h);font-weight:700;color:var(--text);margin-top:16px;font-size:1.05rem" id="scoreLabel">Loading…</div>
+            <div style="font-size:.76rem;color:var(--text2);margin-top:6px" id="scorePct"></div>
+            <div class="score-bkd" id="scoreBkd"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card cpx mb4">
+            <div class="sec-tag"><i class="fas fa-medal"></i> Achievement Badges</div>
+            <div class="badge-grid" id="badgeGrid">
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+              <div class="sk" style="height:95px;border-radius:14px"></div>
+            </div>
+          </div>
+          <div class="card cpx" id="scoreInsights">
+            <div class="sec-tag"><i class="fas fa-lightbulb"></i> Score Insights</div>
+            <div class="sk sk-l" style="width:90%"></div><div class="sk sk-l" style="width:75%"></div><div class="sk sk-l" style="width:60%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PREDICTION ── -->
+    <div class="page" id="page-prediction">
+      <div class="ph">
+        <div class="ph-ey">ML Forecast</div>
+        <div class="ph-t">12-Month Emission Forecast</div>
+        <div class="ph-s">Linear regression model trained on your last 90 days predicts future emissions. Requires 7+ logged days.</div>
+      </div>
+      <div class="pred-cards" id="predCards">
+        <div class="card pred-card sk" style="height:110px"></div>
+        <div class="card pred-card sk" style="height:110px"></div>
+        <div class="card pred-card sk" style="height:110px"></div>
+      </div>
+      <div class="card cc">
+        <div class="cc-head">
+          <div><div class="cc-t">Forecasted Monthly Emissions</div><div class="cc-s">Next 12 months · kg CO₂e · linear regression with trend extrapolation</div></div>
+          <span class="cc-tag">AI Forecast</span>
+        </div>
+        <canvas id="predChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- ── LEADERBOARD ── -->
+    <div class="page" id="page-leaderboard">
+      <div class="ph">
+        <div class="ph-ey">Community</div>
+        <div class="ph-t">Global Leaderboard</div>
+        <div class="ph-s">Users ranked by sustainability score or lowest monthly footprint. Your position is highlighted.</div>
+      </div>
+      <div class="lb-ctrls">
+        <button class="lb-tog active" id="lbScore" onclick="switchLB('score')"><i class="fas fa-star"></i> By Eco Score</button>
+        <button class="lb-tog" id="lbFoot" onclick="switchLB('footprint')"><i class="fas fa-shoe-prints"></i> By Footprint</button>
+        <button class="btn-sm" style="margin-left:auto" onclick="loadLeaderboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+      <div class="card lb-table" id="lbTable">
+        <div class="lb-head">
+          <div style="min-width:34px">#</div><div style="width:40px"></div>
+          <div style="flex:1">User</div><div>Score</div><div>Grade</div><div>Reduction</div>
+        </div>
+        <div class="sk" style="height:58px;border-radius:0;margin:1px 0"></div>
+        <div class="sk" style="height:58px;border-radius:0;margin:1px 0"></div>
+        <div class="sk" style="height:58px;border-radius:0;margin:1px 0"></div>
+        <div class="sk" style="height:58px;border-radius:0;margin:1px 0"></div>
+      </div>
+    </div>
+
+    <!-- ── CHALLENGES ── -->
+    <div class="page" id="page-challenges">
+      <div class="ph">
+        <div class="ph-ey">Community</div>
+        <div class="ph-t">Carbon Saving Challenges</div>
+        <div class="ph-s">Join community challenges to make a collective impact and track group progress.</div>
+      </div>
+      <div class="chal-grid" id="chalGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <div class="bot-nav">
+    <div class="bn-i active" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i>Home</div>
+    <div class="bn-i" onclick="nav('calculator')"><i class="fas fa-calculator"></i>Calc</div>
+    <div class="bn-i" onclick="nav('recs')"><i class="fas fa-robot"></i>AI</div>
+    <div class="bn-i" onclick="nav('leaderboard')"><i class="fas fa-trophy"></i>Rank</div>
+    <div class="bn-i" onclick="nav('challenges')"><i class="fas fa-bolt"></i>Challenges</div>
+  </div>
+</div>
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG & STATE
+═══════════════════════════════════════════ */
+const API = 'http://localhost:5000/api';
+let token = localStorage.getItem('eco_token') || '';
+let currentUser = JSON.parse(localStorage.getItem('eco_user') || 'null');
+let lbMode = 'score';
+let calcResult = null;
+let charts = {};
+let activeFood = 'vegetarian';
+let modeKm = {};
+
+/* ═══════════════════════════════════════════
+   LOADER
+═══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('out');
+    animStats();
+    if (token && currentUser) enterApp();
+  }, 2000);
+});
+
+/* ═══════════════════════════════════════════
+   API HELPER
+═══════════════════════════════════════════ */
+async function api(method, path, body) {
+  const opts = { method, headers: {} };
+  if (method !== 'GET' && method !== 'HEAD') opts.headers['Content-Type'] = 'application/json';
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(API + path, opts);
+    const ct = r.headers.get('content-type') || '';
+    let data;
+    if (ct.includes('application/json')) {
+      data = await r.json();
+    } else {
+      // fallback for non-JSON responses
+      const txt = await r.text();
+      data = { message: txt || (r.ok ? '' : r.statusText) };
+    }
+    return { ok: r.ok, status: r.status, data };
+  } catch (e) {
+    setDot('off');
+    return { ok: false, status: 0, data: { message: 'Cannot reach API. Start Flask: python run.py' } };
+  }
+}
+
+async function checkAPI() {
+  setDot('checking');
+  const r = await api('GET', '/health');
+  setDot(r.ok ? 'on' : 'off');
+  return r.ok;
+}
+
+function setDot(state) {
+  const d = document.getElementById('apiDot');
+  if (!d) return;
+  d.className = 'api-dot';
+  if (state === 'off') { d.classList.add('off'); d.title = 'API offline — start Flask server'; }
+  else if (state === 'checking') { d.classList.add('checking'); d.title = 'Checking API…'; }
+  else { d.title = 'API connected ✓'; }
+}
+
+/* ═══════════════════════════════════════════
+   TOAST SYSTEM
+═══════════════════════════════════════════ */
+const TOAST_ICONS = {
+  success: 'fa-check-circle',
+  error:   'fa-exclamation-circle',
+  warn:    'fa-exclamation-triangle',
+  info:    'fa-info-circle'
+};
+function showToast(msg, type = 'info', title = '') {
+  // build toast elements safely (avoid inserting untrusted HTML)
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  const icon = document.createElement('i');
+  icon.className = `fas ${TOAST_ICONS[type]} ti`;
+  d.appendChild(icon);
+  const body = document.createElement('div');
+  body.className = 'toast-body';
+  if (title) {
+    const tEl = document.createElement('div');
+    tEl.className = 'toast-title';
+    tEl.textContent = title;
+    body.appendChild(tEl);
+  }
+  const mEl = document.createElement('div');
+  mEl.className = 'toast-msg';
+  mEl.textContent = msg;
+  body.appendChild(mEl);
+  d.appendChild(body);
+  const btn = document.createElement('button');
+  btn.className = 'tc';
+  btn.addEventListener('click', () => dismissToast(btn));
+  btn.innerHTML = '<i class="fas fa-times"></i>';
+  d.appendChild(btn);
+  document.getElementById('toasts').appendChild(d);
+  setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 450); }, 4000);
+}
+function dismissToast(btn) {
+  const t = btn.closest('.toast');
+  t.classList.add('out');
+  setTimeout(() => t.remove(), 450);
+}
+
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
+function openAuth(tab = 'login') {
+  document.getElementById('authModal').classList.add('active');
+  switchTab(tab);
+  checkAPI();
+}
+function closeAuth() { document.getElementById('authModal').classList.remove('active'); }
+
+function switchTab(t) {
+  document.getElementById('loginForm').style.display    = t === 'login'    ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = t === 'register' ? 'block' : 'none';
+  document.getElementById('tabLogin').className = 'tab-btn' + (t === 'login'    ? ' active' : '');
+  document.getElementById('tabReg').className   = 'tab-btn' + (t === 'register' ? ' active' : '');
+  document.getElementById('authErr').classList.remove('show');
+}
+
+function showAuthErr(msg) {
+  const el = document.getElementById('authErr');
+  document.getElementById('authErrTxt').textContent = msg;
+  el.classList.add('show');
+}
+
+function fillDemo() {
+  document.getElementById('loginEmail').value = 'priya@demo.com';
+  document.getElementById('loginPwd').value   = 'Demo@1234';
+  switchTab('login');
+}
+
+async function doLogin() {
+  const btn   = document.getElementById('loginBtn');
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd   = document.getElementById('loginPwd').value;
+  if (!email || !pwd) { showAuthErr('Please enter your email and password.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in…';
+  const r = await api('POST', '/auth/login', { email, password: pwd });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+  if (!r.ok) { showAuthErr(r.data.message || 'Invalid credentials. Try demo account.'); return; }
+  token = r.data.data.access_token;
+  currentUser = r.data.data.user;
+  localStorage.setItem('eco_token', token);
+  localStorage.setItem('eco_user', JSON.stringify(currentUser));
+  closeAuth();
+  enterApp();
+  showToast(`Welcome back, ${currentUser.name}! 🌿`, 'success', 'Signed In');
+}
+
+async function doRegister() {
+  const btn     = document.getElementById('regBtn');
+  const name    = document.getElementById('regName').value.trim();
+  const email   = document.getElementById('regEmail').value.trim();
+  const pwd     = document.getElementById('regPwd').value;
+  const city    = document.getElementById('regCity').value.trim();
+  const country = document.getElementById('regCountry').value.trim();
+  if (!name || !email || !pwd) { showAuthErr('Name, email and password are required.'); return; }
+  if (pwd.length < 8) { showAuthErr('Password must be at least 8 characters.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account…';
+  const r = await api('POST', '/auth/register', { name, email, password: pwd, city, country });
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Free Account';
+  if (!r.ok) { showAuthErr(r.data.message || 'Registration failed. Try a different email.'); return; }
+  token = r.data.data.access_token;
+  currentUser = r.data.data.user;
+  localStorage.setItem('eco_token', token);
+  localStorage.setItem('eco_user', JSON.stringify(currentUser));
+  closeAuth();
+  enterApp();
+  showToast(`Welcome to EcoTrace, ${currentUser.name}! 🌱`, 'success', 'Account Created');
+}
+
+function logout() {
+  token = ''; currentUser = null;
+  localStorage.removeItem('eco_token');
+  localStorage.removeItem('eco_user');
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('landing').classList.add('active');
+  Object.values(charts).forEach(c => c.destroy && c.destroy());
+  charts = {};
+  showToast('You have been signed out.', 'info');
+}
+
+function enterApp() {
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  if (currentUser) {
+    document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+    const loc = [currentUser.city, currentUser.country].filter(Boolean).join(', ');
+    document.getElementById('userRole').textContent = loc || 'Eco Warrior';
+    document.getElementById('userAv').textContent   = (currentUser.name || 'U')[0].toUpperCase();
+  }
+  checkAPI();
+  buildCalc();
+  buildChallenges();
+  nav('dashboard');
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════ */
+const PAGE_NAMES = {
+  dashboard:  'Dashboard',
+  calculator: 'Calculator',
+  goals:      'Goals',
+  recs:       'AI Recommendations',
+  score:      'Eco Score',
+  prediction: 'ML Prediction',
+  leaderboard:'Leaderboard',
+  challenges: 'Challenges'
+};
+
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.bn-i').forEach(i => i.classList.remove('active'));
+
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+
+  document.querySelectorAll('.sb-item').forEach(i => {
+    if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${id}'`))
+      i.classList.add('active');
+  });
+  document.querySelectorAll('.bn-i').forEach(i => {
+    if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${id}'`))
+      i.classList.add('active');
+  });
+
+  document.getElementById('topTitle').textContent = PAGE_NAMES[id] || id;
+  closeSB();
+
+  if (id === 'dashboard')    loadDashboard();
+  if (id === 'goals')        loadGoals();
+  if (id === 'score')        loadScore();
+  if (id === 'leaderboard')  loadLeaderboard();
+  if (id === 'prediction')   loadPrediction();
+}
+
+function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); }
+function closeSB()  { document.getElementById('sidebar').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   CHART HELPERS
+═══════════════════════════════════════════ */
+const CO = {
+  em: '#00c896', sky: '#22d3ee', lime: '#b5f23c',
+  amber: '#f59e0b', crimson: '#ef4444', purple: '#8b5cf6',
+  surf2: 'rgba(255,255,255,0.07)', text2: '#8bbfa8', void: '#050e09'
+};
+Chart.defaults.color          = CO.text2;
+Chart.defaults.font.family    = 'Inter';
+Chart.defaults.borderColor    = 'rgba(0,200,150,0.1)';
+
+function killChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderLine(labels, data) {
+  killChart('line');
+  if (!labels.length) return;
+  const ctx  = document.getElementById('lineChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, 'rgba(0,200,150,0.22)');
+  grad.addColorStop(1, 'rgba(0,200,150,0)');
+  charts.line = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'CO₂ kg', data,
+      borderColor: CO.em, backgroundColor: grad,
+      fill: true, tension: 0.45,
+      pointRadius: 4, pointHoverRadius: 6,
+      pointBackgroundColor: CO.em,
+      pointBorderColor: CO.void, pointBorderWidth: 2
+    }]},
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: 'rgba(10,26,16,0.95)',
+        borderColor: 'rgba(0,200,150,0.3)',
+        borderWidth: 1,
+        titleColor: '#00c896',
+        bodyColor: '#8bbfa8',
+        padding: 12
+      }},
+      scales: {
+        x: { grid: { color: CO.surf2 }, ticks: { color: CO.text2, font: { size: 11 } } },
+        y: { grid: { color: CO.surf2 }, ticks: { color: CO.text2, font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderDonut(labels, data) {
+  killChart('donut');
+  if (!labels.length) return;
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  charts.donut = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{
+      data,
+      backgroundColor: [CO.em, CO.sky, CO.lime, CO.amber],
+      borderWidth: 0, hoverOffset: 10
+    }]},
+    options: {
+      responsive: true, cutout: '70%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: CO.text2, padding: 14, font: { size: 11 }, usePointStyle: true } },
+        tooltip: { backgroundColor: 'rgba(10,26,16,0.95)', borderColor: 'rgba(0,200,150,0.3)', borderWidth: 1, titleColor: '#00c896', bodyColor: '#8bbfa8', padding: 12 }
+      }
+    }
+  });
+}
+
+function renderBar(labels, current, targets) {
+  killChart('bar');
+  const ctx = document.getElementById('barChart').getContext('2d');
+  charts.bar = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'Current (kg)',  data: current, backgroundColor: 'rgba(0,200,150,0.72)', borderRadius: 7, borderSkipped: false },
+      { label: 'Benchmark (kg)', data: targets, backgroundColor: 'rgba(34,211,238,0.32)', borderRadius: 7, borderSkipped: false }
+    ]},
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: CO.text2, font: { size: 11 }, usePointStyle: true } },
+        tooltip: { backgroundColor: 'rgba(10,26,16,0.95)', borderColor: 'rgba(0,200,150,0.3)', borderWidth: 1, titleColor: '#00c896', bodyColor: '#8bbfa8', padding: 12 }
+      },
+      scales: {
+        x: { grid: { color: CO.surf2 }, ticks: { color: CO.text2 } },
+        y: { grid: { color: CO.surf2 }, ticks: { color: CO.text2 } }
+      }
+    }
+  });
+}
+
+function renderPred(labels, data) {
+  killChart('pred');
+  if (!labels.length) return;
+  const ctx  = document.getElementById('predChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 220);
+  grad.addColorStop(0, 'rgba(34,211,238,0.22)');
+  grad.addColorStop(1, 'rgba(34,211,238,0)');
+  charts.pred = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Forecast (kg)', data,
+      borderColor: CO.sky, backgroundColor: grad,
+      fill: true, tension: 0.5,
+      borderDash: [7, 4],
+      pointRadius: 5, pointHoverRadius: 7,
+      pointBackgroundColor: CO.sky,
+      pointBorderColor: CO.void, pointBorderWidth: 2
+    }]},
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false },
+        tooltip: { backgroundColor: 'rgba(10,26,16,0.95)', borderColor: 'rgba(34,211,238,0.3)', borderWidth: 1, titleColor: '#22d3ee', bodyColor: '#8bbfa8', padding: 12 }
+      },
+      scales: {
+        x: { grid: { color: CO.surf2 }, ticks: { color: CO.text2 } },
+        y: { grid: { color: CO.surf2 }, ticks: { color: CO.text2 } }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════ */
+async function loadDashboard() {
+  const r = await api('GET', '/dashboard/');
+  if (!r.ok) {
+    document.getElementById('dashStats').innerHTML = `
+      <div class="card sc-card" style="grid-column:1/-1">
+        <div class="empty-s">
+          <div class="empty-ic">🔌</div>
+          <div class="empty-t">${r.data.message || 'Could not load dashboard. Check Flask API connection.'}</div>
+          <button class="btn-primary" onclick="loadDashboard()" style="margin-top:8px"><i class="fas fa-sync-alt"></i> Retry</button>
+        </div>
+      </div>`;
+    return;
+  }
+  const d  = r.data.data;
+  const sc = d.sustainability_score || {};
+  document.getElementById('topScore').textContent = '⚡ ' + (sc.score || '--');
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="card sc-card">
+      <div class="sc-ic ic-g"><i class="fas fa-calendar-alt"></i></div>
+      <div class="sc-val">${fmtKg(d.monthly.total)}</div>
+      <div class="sc-lbl">Monthly CO₂ Emissions</div>
+      <span class="sc-chg chg-g"><i class="fas fa-arrow-down"></i> tracked via API</span>
+    </div>
+    <div class="card sc-card">
+      <div class="sc-ic ic-b"><i class="fas fa-calendar-week"></i></div>
+      <div class="sc-val">${fmtKg(d.weekly.total)}</div>
+      <div class="sc-lbl">Weekly CO₂ Emissions</div>
+      <span class="sc-chg chg-sky"><i class="fas fa-clock"></i> last 7 days</span>
+    </div>
+    <div class="card sc-card">
+      <div class="sc-ic ic-l"><i class="fas fa-star"></i></div>
+      <div class="sc-val mono">${sc.score || '—'}</div>
+      <div class="sc-lbl">Sustainability Score</div>
+      <span class="sc-chg ${(sc.score || 0) >= 70 ? 'chg-g' : 'chg-n'}">${sc.grade || '—'} · ${sc.label || 'No data yet'}</span>
+    </div>
+    <div class="card sc-card">
+      <div class="sc-ic ic-a"><i class="fas fa-tree"></i></div>
+      <div class="sc-val mono">${Math.ceil((d.yearly.total || 0) / 22)}</div>
+      <div class="sc-lbl">Trees to Offset Yearly</div>
+      <span class="sc-chg chg-n"><i class="fas fa-leaf"></i> annual estimate</span>
+    </div>`;
+
+  const trend = d.monthly_trend || [];
+  renderLine(trend.map(t => t.month), trend.map(t => t.kg));
+
+  const bk = d.category_breakdown || [];
+  renderDonut(bk.map(b => b.category), bk.map(b => b.kg));
+
+  renderBar(
+    ['Transport', 'Electricity', 'Food', 'Fuel', 'Total'],
+    [d.monthly.transport, d.monthly.electricity, d.monthly.food, d.monthly.fuel, d.monthly.total],
+    [80, 60, 75, 40, 255]
+  );
+}
+
+function fmtKg(v) {
+  if (!v && v !== 0) return '—';
+  return v >= 1000 ? (v / 1000).toFixed(2) + ' t' : v.toFixed(1) + ' kg';
+}
+
+/* ═══════════════════════════════════════════
+   CALCULATOR
+═══════════════════════════════════════════ */
+const MODES = [
+  { id: 'petrol_car',   label: 'Petrol Car',  icon: '🚗', ef: 0.192 },
+  { id: 'diesel_car',   label: 'Diesel Car',  icon: '🛻', ef: 0.171 },
+  { id: 'cng_car',      label: 'CNG Car',     icon: '🚙', ef: 0.115 },
+  { id: 'electric_car', label: 'Electric EV', icon: '⚡', ef: 0.053 },
+  { id: 'bike',         label: 'Motorbike',   icon: '🏍️', ef: 0.103 },
+  { id: 'bus',          label: 'Bus',         icon: '🚌', ef: 0.089 },
+  { id: 'train',        label: 'Train',       icon: '🚆', ef: 0.041 },
+  { id: 'flight_short', label: 'Short Haul',  icon: '✈️', ef: 0.255 },
+  { id: 'flight_long',  label: 'Long Haul',   icon: '🛫', ef: 0.195 },
+];
+const FOODS = [
+  { id: 'vegan',        label: 'Vegan',        icon: '🌱', co2: '1.5 kg/day' },
+  { id: 'vegetarian',   label: 'Vegetarian',   icon: '🥗', co2: '1.7 kg/day' },
+  { id: 'pescatarian',  label: 'Pescatarian',  icon: '🐟', co2: '2.3 kg/day' },
+  { id: 'non_veg',      label: 'Non-Veg',      icon: '🍖', co2: '3.3 kg/day' },
+];
+
+function buildCalc() {
+  document.getElementById('modeGrid').innerHTML = MODES.map(m => `
+    <div>
+      <button class="mode-btn" id="mb-${m.id}" onclick="toggleMode('${m.id}')">
+        <span class="mi">${m.icon}</span>
+        <span>${m.label}</span>
+      </button>
+      <input class="mode-km" id="km-${m.id}" type="number" placeholder="km/week" min="0"
+        oninput="modeKm['${m.id}']=parseFloat(this.value)||0">
+    </div>`).join('');
+
+  document.getElementById('foodGrid').innerHTML = FOODS.map(f => `
+    <div class="food-card${f.id === activeFood ? ' active' : ''}" onclick="setFood('${f.id}',this)">
+      <span class="fi">${f.icon}</span>
+      <span class="fn">${f.label}</span>
+      <span class="fco2">${f.co2}</span>
+    </div>`).join('');
+}
+
+function toggleMode(id) {
+  const btn = document.getElementById('mb-' + id);
+  const inp = document.getElementById('km-' + id);
+  const on  = btn.classList.toggle('active');
+  inp.style.display = on ? 'block' : 'none';
+  if (!on) { inp.value = ''; modeKm[id] = 0; }
+}
+
+function setFood(id, el) {
+  activeFood = id;
+  document.querySelectorAll('.food-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function runCalc() {
+  const btn = document.getElementById('calcBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating…';
+
+  const trips = MODES
+    .filter(m => (modeKm[m.id] || 0) > 0)
+    .map(m => ({ mode: m.id, distance_km: (modeKm[m.id] || 0) * 4.33 }));
+
+  const payload = {
+    trips,
+    electricity_kwh: parseFloat(document.getElementById('c-kwh').value) || 0,
+    fuel: {
+      lpg_cylinders: parseFloat(document.getElementById('c-lpg').value) || 0,
+      png_m3:        parseFloat(document.getElementById('c-png').value) || 0,
+      cng_kg:        parseFloat(document.getElementById('c-cng').value) || 0,
+    },
+    food_type: activeFood
+  };
+
+  const r = await api('POST', '/calculator/calculate', payload);
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-leaf"></i> Calculate My Carbon Footprint';
+
+  if (!r.ok) {
+    showToast(r.data.message || 'Calculation failed. Check API.', 'error', 'Error');
+    return;
+  }
+  calcResult = { ...r.data.data, _payload: payload };
+  renderResult(r.data.data);
+}
+
+function renderResult(d) {
+  const tonnes = d.total_annual_tonnes;
+  const el     = document.getElementById('resNum');
+  animNum(el, 0, tonnes, 900, v => v.toFixed(2));
+
+  el.className = 'r-big' + (tonnes < 2 ? '' : tonnes < 4 ? ' med' : ' high');
+
+  const s = document.getElementById('resStatus');
+  if (tonnes < 2) {
+    s.className = 'r-status rs-good';
+    s.innerHTML = '<i class="fas fa-leaf"></i> Excellent — below 2t green target';
+  } else if (tonnes < 4) {
+    s.className = 'r-status rs-med';
+    s.innerHTML = '<i class="fas fa-exclamation-circle"></i> Moderate — room to improve';
+  } else {
+    s.className = 'r-status rs-bad';
+    s.innerHTML = '<i class="fas fa-fire"></i> High impact — urgent action needed';
+  }
+
+  // Compare row
+  const cr = document.getElementById('compareRow');
+  cr.style.display = 'flex';
+  const youEl    = document.getElementById('cmpYou');
+  const indiaEl  = document.getElementById('cmpIndia');
+  const worldEl  = document.getElementById('cmpWorld');
+  youEl.textContent   = tonnes.toFixed(2) + 't';
+  youEl.className     = 'cmp-val ' + (tonnes < 1.7 ? 'better' : 'worse');
+  indiaEl.className   = 'cmp-val ' + (tonnes <= 1.7 ? 'better' : '');
+  worldEl.className   = 'cmp-val ' + (tonnes <= 4.5 ? 'better' : 'worse');
+
+  // Trees
+  document.getElementById('treesN').textContent = (d.trees_to_offset || 0).toLocaleString();
+
+  // Log button
+  document.getElementById('logBtn').style.display = 'flex';
+
+  // Breakdown bars
+  const items = [
+    { icon: '🚗', name: 'Transport',   val: d.transport_emissions,   pct: d.breakdown_pct?.transport   || 0 },
+    { icon: '⚡', name: 'Electricity', val: d.electricity_emissions, pct: d.breakdown_pct?.electricity || 0 },
+    { icon: '🔥', name: 'Fuel',        val: d.fuel_emissions,        pct: d.breakdown_pct?.fuel        || 0 },
+    { icon: '🍽️', name: 'Food',        val: d.food_emissions,        pct: d.breakdown_pct?.food        || 0 },
+  ];
+  document.getElementById('bkList').innerHTML = items.map(b => `
+    <div class="bk-row">
+      <span class="bk-ic">${b.icon}</span>
+      <span class="bk-nm">${b.name}</span>
+      <div class="bk-bw"><div class="bk-bf" style="width:${b.pct}%"></div></div>
+      <span class="bk-v">${(b.val / 1000).toFixed(2)}t</span>
+    </div>`).join('');
+}
+
+async function logRecord() {
+  if (!calcResult) return;
+  const btn = document.getElementById('logBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+  const r = await api('POST', '/tracking/log', calcResult._payload);
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save"></i> Save to My Records';
+  if (r.ok) showToast('Record saved to your carbon log! 🌱', 'success', 'Logged');
+  else showToast(r.data.message || 'Could not log record.', 'error', 'Error');
+}
+
+/* ═══════════════════════════════════════════
+   GOALS
+═══════════════════════════════════════════ */
+function openGoalModal()  { document.getElementById('goalModal').classList.add('active'); }
+function closeGoalModal() { document.getElementById('goalModal').classList.remove('active'); }
+
+async function loadGoals() {
+  const r = await api('GET', '/goals/');
+  if (!r.ok) { showToast('Could not load goals. Check API.', 'error'); return; }
+  const goals = r.data.data || [];
+  const grid  = document.getElementById('goalGrid');
+
+  if (!goals.length) {
+    grid.innerHTML = `<button class="add-goal" onclick="openGoalModal()"><i class="fas fa-plus-circle"></i>No goals yet. Create your first reduction goal!</button>`;
+    return;
+  }
+
+  grid.innerHTML = goals.map(g => `
+    <div class="card goal-card" id="goal-${g.id}">
+      <div class="goal-hdr">
+        <span class="goal-cat">${g.category}</span>
+        <button class="goal-del" onclick="delGoal(${g.id})" title="Delete goal"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="goal-title">${g.title}</div>
+      ${g.description ? `<div class="goal-desc">${g.description}</div>` : ''}
+      <div class="prog-header">
+        <span class="prog-pct">${g.achievement_pct}%</span>
+        <span class="prog-vals">${g.current_value.toFixed(1)} / ${g.target_value.toFixed(1)} kg</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${g.achievement_pct}%"></div></div>
+      <div class="goal-update-row">
+        <input class="goal-inp" type="number" placeholder="Update progress (kg CO₂ reduced)" id="gp-${g.id}" min="0">
+        <button class="btn-sm" onclick="updateGoal(${g.id})" title="Save progress"><i class="fas fa-check"></i> Update</button>
+      </div>
+      <div class="goal-ft">
+        <span class="goal-days"><i class="fas fa-calendar" style="opacity:.5;margin-right:4px"></i>${g.end_date ? 'Ends ' + g.end_date : 'No deadline'}</span>
+        <span class="gsc ${g.is_completed ? 'gsc-d' : 'gsc-a'}">${g.is_completed ? '✅ Completed' : '🔄 Active'}</span>
+      </div>
+    </div>`).join('') +
+    `<button class="add-goal" onclick="openGoalModal()"><i class="fas fa-plus-circle"></i>Add Another Goal</button>`;
+}
+
+async function submitGoal() {
+  const title = document.getElementById('goalTitle').value.trim();
+  const tv    = parseFloat(document.getElementById('goalTarget').value);
+  if (!title) { showToast('Please enter a goal title.', 'warn'); return; }
+  if (!tv || tv <= 0) { showToast('Please enter a valid target value.', 'warn'); return; }
+
+  const r = await api('POST', '/goals/', {
+    title,
+    target_value: tv,
+    category:    document.getElementById('goalCat').value,
+    end_date:    document.getElementById('goalEnd').value || null,
+    description: document.getElementById('goalDesc').value,
+  });
+  if (r.ok) {
+    showToast('Goal created successfully! 🎯', 'success', 'Goal Created');
+    closeGoalModal();
+    loadGoals();
+    document.getElementById('goalTitle').value = '';
+    document.getElementById('goalTarget').value = '';
+    document.getElementById('goalDesc').value = '';
+  } else {
+    showToast(r.data.message || 'Failed to create goal.', 'error', 'Error');
+  }
+}
+
+async function updateGoal(gid) {
+  const val = parseFloat(document.getElementById('gp-' + gid).value);
+  if (isNaN(val) || val < 0) { showToast('Enter a valid positive number.', 'warn'); return; }
+  const r = await api('PUT', `/goals/${gid}`, { current_value: val });
+  if (r.ok) {
+    const pct = r.data.data.achievement_pct;
+    showToast(`Progress updated — ${pct}% achieved! 💪`, 'success');
+    loadGoals();
+  } else {
+    showToast('Update failed.', 'error');
+  }
+}
+
+async function delGoal(gid) {
+  if (!confirm('Delete this goal? This cannot be undone.')) return;
+  const r = await api('DELETE', `/goals/${gid}`);
+  if (r.ok) { showToast('Goal deleted.', 'info'); loadGoals(); }
+  else showToast('Could not delete goal.', 'error');
+}
+
+/* ═══════════════════════════════════════════
+   RECOMMENDATIONS / CHAT
+═══════════════════════════════════════════ */
+async function fetchRecs() {
+  addMsg('🤖 Analysing your last 30 days of emission data…', false);
+  showTyping();
+  const r = await api('POST', '/recommendations/');
+  removeTyping();
+  if (!r.ok) {
+    addMsg('⚠️ Could not generate recommendations. Check API connection and try again.', false);
+    return;
+  }
+  const { tips, source } = r.data.data;
+  const srcLabel = source === 'gemini_ai' ? '✨ Gemini AI' : '📊 Rule Engine';
+  addMsg(`Analysis complete! Here are your personalised tips (powered by ${srcLabel}):`, false);
+  tips.forEach((tip, i) => setTimeout(() => addMsg(tip, false), (i + 1) * 320));
+  setTimeout(() => renderTips(tips), 200);
+  showToast(`${tips.length} personalised tips generated!`, 'success', 'Tips Ready');
+}
+
+function renderTips(tips) {
+  document.getElementById('tipsList').innerHTML = tips.map(t => {
+    const firstSpace = t.indexOf(' ');
+    const emoji = firstSpace > 0 && firstSpace <= 3 ? t.slice(0, firstSpace) : '💡';
+    const text  = firstSpace > 0 && firstSpace <= 3 ? t.slice(firstSpace + 1) : t;
+    return `<div class="tip-row">
+      <div class="tip-ic">${emoji}</div>
+      <div><div class="tip-txt">${text}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function addMsg(text, isUser) {
+  const body = document.getElementById('chatBody');
+  const d    = document.createElement('div');
+  d.className = 'msg' + (isUser ? ' user' : '');
+  d.innerHTML = `
+    <div class="m-av ${isUser ? 'av-usr' : 'av-bot'}">${isUser ? '<i class="fas fa-user"></i>' : '🌿'}</div>
+    <div class="m-bub ${isUser ? 'bub-usr' : 'bub-bot'}">${text}</div>`;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showTyping() {
+  const body = document.getElementById('chatBody');
+  const d    = document.createElement('div');
+  d.className = 'msg'; d.id = 'typingMsg';
+  d.innerHTML = `<div class="m-av av-bot">🌿</div><div class="m-bub bub-bot"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('typingMsg'); if (t) t.remove(); }
+
+const QUICK_REPLIES = {
+  '🚗 Transport tips':
+    'Use public transport at least 2x/week — saves ~2.4 kg CO₂/day. Cycling trips under 3 km adds up fast over a year. Even one car-free day/week reduces annual transport emissions by ~14%. 🚲',
+  '⚡ Energy savings':
+    'Set AC to 24°C (each degree higher saves ~6%). Switch to LED bulbs (75% less energy, 15× longer life). Unplug chargers when not in use — standby mode adds up to 10% of your electricity bill. ⚡',
+  '🥗 Food choices':
+    'One meatless day per week saves ~0.55 kg CO₂/meal. Cutting red meat to 2x/week reduces your food-related emissions by ~30%. Locally sourced, seasonal produce has a 5× lower carbon footprint. 🌱',
+  '🌳 Offset options':
+    'Plant trees (each absorbs ~22 kg CO₂/year). Fund Gold Standard-verified reforestation. Rooftop solar panels offset 1–2 tonnes annually and typically pay back in 5–7 years. ☀️',
+  '🏭 Industry tips':
+    'Choose suppliers with verified carbon neutrality. Use video calls instead of business flights — a return UK-US flight emits ~1.5 tonnes CO₂. Green cloud hosting reduces digital carbon by ~98%. 🌐',
+};
+
+function quickMsg(text) {
+  addMsg(text, true);
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addMsg(QUICK_REPLIES[text] || 'Great question! Click "Get My Tips" for a full personalised analysis based on your real data. 🌿', false);
+  }, 700);
+}
+
+function sendChat() {
+  const inp  = document.getElementById('chatInp');
+  const text = inp.value.trim();
+  if (!text) return;
+  addMsg(text, true);
+  inp.value = '';
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addMsg("I'm reviewing your emission profile. For the most personalised response, click <strong>Get My Tips</strong> to run a full analysis of your last 30 days of data. 🌿", false);
+  }, 900);
+}
+
+/* ═══════════════════════════════════════════
+   ECO SCORE
+═══════════════════════════════════════════ */
+const BADGES = [
+  { em: '🚲', nm: 'Cycle Star',     ds: 'Cycled 100 km',       unlocked: true  },
+  { em: '🌱', nm: 'Green Starter',  ds: 'First calculation',   unlocked: true  },
+  { em: '⚡', nm: 'Energy Saver',   ds: '-20% electricity',    unlocked: true  },
+  { em: '🌿', nm: 'Plant Power',    ds: '30 vegan days',       unlocked: true  },
+  { em: '🏆', nm: 'Net Zero',       ds: 'Reach zero emissions', unlocked: false },
+  { em: '🌍', nm: 'Earth Hero',     ds: 'Top 1% globally',     unlocked: false },
+];
+
+async function loadScore() {
+  const r = await api('GET', '/dashboard/');
+  if (!r.ok) return;
+  const sc    = r.data.data.sustainability_score || {};
+  const score = sc.score || 0;
+
+  animNum(document.getElementById('scoreBig'), 0, score, 1400, v => Math.round(v));
+  document.getElementById('scoreGrade').textContent = sc.grade || '—';
+  document.getElementById('scoreLabel').textContent = sc.label || '—';
+  document.getElementById('scorePct').textContent   =
+    sc.percentile ? `You are in the top ${100 - sc.percentile}% of all tracked users` : '';
+  document.getElementById('topScore').textContent   = '⚡ ' + score;
+
+  const circ   = 2 * Math.PI * 90;
+  const offset = circ * (1 - score / 100);
+  setTimeout(() => { document.getElementById('ringFill').style.strokeDashoffset = offset; }, 250);
+
+  document.getElementById('badgeGrid').innerHTML = BADGES.map(b => `
+    <div class="badge-item ${b.unlocked ? 'unlocked' : 'locked'}">
+      ${b.unlocked ? '<div class="unlocked-badge"><i class="fas fa-check"></i></div>' : ''}
+      <div class="b-em">${b.em}</div>
+      <div class="b-nm">${b.nm}</div>
+      <div class="b-ds">${b.ds}</div>
+    </div>`).join('');
+
+  const bkd = sc.breakdown || {};
+  document.getElementById('scoreBkd').innerHTML = Object.entries(bkd).map(([k, v]) => `
+    <div class="sb-row">
+      <span class="sb-cat">${k[0].toUpperCase() + k.slice(1)}</span>
+      <div class="sb-track"><div class="sb-fill" style="width:${(v.earned / v.max * 100).toFixed(0)}%"></div></div>
+      <span class="sb-pts">${v.earned.toFixed(1)} / ${v.max}</span>
+    </div>`).join('');
+
+  document.getElementById('scoreInsights').innerHTML = `
+    <div class="sec-tag"><i class="fas fa-lightbulb"></i> Score Insights</div>
+    <p style="font-size:.85rem;color:var(--text2);line-height:1.75;margin-top:10px">
+      Your sustainability score is <strong style="color:var(--em)">${score} / 100 (Grade ${sc.grade})</strong>.
+      You are in the <strong style="color:var(--em)">top ${100 - (sc.percentile || 50)}%</strong> of all EcoTrace users globally.
+      Your average daily emissions are <strong style="color:var(--sky);font-family:var(--ff-m)">${sc.avg_daily_kg || 0} kg CO₂e</strong>.
+    </p>
+    <p style="font-size:.82rem;color:var(--text3);margin-top:10px;line-height:1.7">
+      ${score >= 85
+        ? '🏆 Outstanding performance! You are a verified Eco Champion. Keep maintaining these habits and you\'ll unlock the Net Zero badge.'
+        : score >= 70
+        ? '🌿 Great progress! You\'re a Green Warrior. Small transport or food changes could push you into the A tier.'
+        : score >= 55
+        ? '📈 Getting better! Focus on your highest-emission category — that\'s where the biggest gains are.'
+        : '🔴 Your emissions are above benchmark. Start with transport (biggest impact) and switch to LED bulbs for a quick win.'}
+    </p>`;
+}
+
+/* ═══════════════════════════════════════════
+   PREDICTION
+═══════════════════════════════════════════ */
+async function loadPrediction() {
+  const r = await api('GET', '/prediction/');
+  if (!r.ok) { showToast('Could not load prediction. Check API.', 'error'); return; }
+  const d = r.data.data;
+
+  if (!d.months || !d.months.length) {
+    document.getElementById('predCards').innerHTML = `
+      <div class="card" style="grid-column:1/-1;padding:40px">
+        <div class="empty-s">
+          <div class="empty-ic">📊</div>
+          <div class="empty-t">${d.message || 'Log at least 7 days of records to enable ML predictions.'}</div>
+          <button class="btn-primary" onclick="nav('calculator')" style="margin-top:14px">
+            <i class="fas fa-calculator"></i> Go to Calculator
+          </button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const trendIcon = d.trend.includes('📉') ? '📉' : d.trend.includes('📈') ? '📈' : '➡️';
+  const trendText = d.trend.replace(/ 📉| 📈| ➡️/g, '');
+
+  document.getElementById('predCards').innerHTML = `
+    <div class="card pred-card">
+      <div class="pred-trend-ic">${trendIcon}</div>
+      <div class="pred-val">${trendText}</div>
+      <div class="pred-lbl">Emission trend direction</div>
+    </div>
+    <div class="card pred-card">
+      <div class="pred-trend-ic">📅</div>
+      <div class="pred-val mono">${d.annual_forecast.toFixed(0)} kg</div>
+      <div class="pred-lbl">Forecasted annual total</div>
+    </div>
+    <div class="card pred-card">
+      <div class="pred-trend-ic">🌍</div>
+      <div class="pred-val mono">${d.annual_forecast_tonnes.toFixed(2)} t</div>
+      <div class="pred-lbl">Annual tonnes CO₂e forecast</div>
+    </div>`;
+
+  renderPred(d.months, d.predictions_kg);
+}
+
+/* ═══════════════════════════════════════════
+   LEADERBOARD
+═══════════════════════════════════════════ */
+function switchLB(mode) {
+  lbMode = mode;
+  document.getElementById('lbScore').className = 'lb-tog' + (mode === 'score'     ? ' active' : '');
+  document.getElementById('lbFoot').className  = 'lb-tog' + (mode === 'footprint' ? ' active' : '');
+  loadLeaderboard();
+}
+
+async function loadLeaderboard() {
+  const r = await api('GET', `/leaderboard/?mode=${lbMode}&limit=20`);
+  if (!r.ok) { showToast('Could not load leaderboard.', 'error'); return; }
+  const { leaderboard, my_rank } = r.data.data;
+
+  const AV_COLORS = ['#00c896','#22d3ee','#b5f23c','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+  const TOP_ROWS  = ['top1', 'top2', 'top3'];
+  const MEDALS    = ['🥇', '🥈', '🥉'];
+
+  document.getElementById('lbTable').innerHTML =
+    `<div class="lb-head">
+       <div style="min-width:34px">#</div>
+       <div style="width:40px"></div>
+       <div style="flex:1">User</div>
+       <div style="min-width:50px;text-align:right">Score</div>
+       <div style="min-width:44px;text-align:center">Grade</div>
+       <div style="min-width:52px;text-align:right">Monthly ↓</div>
+     </div>` +
+    leaderboard.map((u, i) => {
+      const isMe = my_rank && u.user_id === my_rank.user_id;
+      return `<div class="lb-row${isMe ? ' mine' : ''} ${i < 3 ? TOP_ROWS[i] : ''}">
+        <div class="lb-rank ${i === 0 ? 'rank-g' : i === 1 ? 'rank-s' : i === 2 ? 'rank-b' : ''}">${i < 3 ? MEDALS[i] : '#' + (i + 1)}</div>
+        <div class="lb-av" style="background:${AV_COLORS[i % AV_COLORS.length]}">${u.name[0].toUpperCase()}</div>
+        <div class="lb-info">
+          <div class="lb-nm">${u.name}${isMe ? '<span class="lb-you-tag">You</span>' : ''}</div>
+          <div class="lb-loc"><i class="fas fa-map-marker-alt" style="opacity:.5;font-size:.6rem"></i> ${u.city || '—'}</div>
+        </div>
+        <div class="lb-sc">${u.score}</div>
+        <div class="lb-gr">${u.grade}</div>
+        <div class="lb-rd">↓${u.reduction_pct}%</div>
+      </div>`;
+    }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   CHALLENGES
+═══════════════════════════════════════════ */
+const CHALLENGES = [
+  { icon: '🚗', title: 'No Vehicle Day',       desc: 'Go car-free for one full day each week. Walk, cycle, or use public transit to cut transport emissions.',          tag: 'Weekly',  time: '30 days left', pct: 65, users: '12.4K' },
+  { icon: '⚡', title: 'Energy Saving Week',   desc: 'Reduce electricity use by 20% this week. Optimise appliance usage, switch to LEDs, and reduce AC.',              tag: 'Weekly',  time: '5 days left',  pct: 40, users: '8.1K'  },
+  { icon: '♻️', title: 'Plastic-Free Month',   desc: 'Eliminate single-use plastics from daily life. Bring your own bags, bottles, and containers everywhere.',         tag: 'Monthly', time: '18 days left', pct: 55, users: '22K'   },
+  { icon: '🥗', title: 'Plant-Based Week',      desc: 'Go fully plant-based for 7 days — one of the highest-impact individual climate actions you can take.',            tag: 'Weekly',  time: '7 days left',  pct: 30, users: '6.8K'  },
+  { icon: '🌳', title: 'Tree Planting Drive',   desc: 'Plant or fund 5 trees this month. Each tree absorbs approximately 22 kg of CO₂ per year naturally.',             tag: 'Monthly', time: '12 days left', pct: 75, users: '18.3K' },
+  { icon: '🚿', title: 'Water-Wise Challenge', desc: 'Keep daily showers under 5 minutes and fix all leaks. Water heating accounts for ~14% of home energy use.',      tag: 'Daily',   time: 'Ongoing',      pct: 82, users: '31K'   },
+];
+
+function buildChallenges() {
+  document.getElementById('chalGrid').innerHTML = CHALLENGES.map((c, i) => `
+    <div class="card chal-card">
+      <div class="chal-glow"></div>
+      <span class="ch-icon">${c.icon}</span>
+      <div class="ch-t">${c.title}</div>
+      <p class="ch-d">${c.desc}</p>
+      <div class="ch-tags">
+        <span class="ch-tag"><i class="fas fa-clock"></i> ${c.tag}</span>
+        <span class="ch-tag"><i class="fas fa-users"></i> ${c.users} joined</span>
+      </div>
+      <div class="ch-prog">
+        <div class="ch-pl"><span>Community ${c.pct}%</span><span>${c.time}</span></div>
+        <div class="ch-bar"><div class="ch-fill" style="width:${c.pct}%"></div></div>
+      </div>
+      <button class="join-btn" id="jb-${i}" onclick="joinChallenge(${i})">
+        <i class="fas fa-plus-circle"></i> Join Challenge
+      </button>
+    </div>`).join('');
+}
+
+function joinChallenge(i) {
+  const btn    = document.getElementById('jb-' + i);
+  const joined = btn.classList.toggle('joined');
+  btn.innerHTML = joined
+    ? '<i class="fas fa-check-circle"></i> Joined!'
+    : '<i class="fas fa-plus-circle"></i> Join Challenge';
+  if (joined) showToast(`You joined "${CHALLENGES[i].title}"! 🎉`, 'success', 'Challenge Joined');
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════ */
+async function downloadCSV() {
+  showToast('Preparing CSV download…', 'info');
+  try {
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const r = await fetch(`${API}/reports/csv?days=30`, { headers });
+    if (!r.ok) { showToast('CSV unavailable — is Flask running?', 'error'); return; }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `ecotrace-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV downloaded successfully! 📊', 'success', 'Export Complete');
+  } catch (e) {
+    showToast('Download failed — check Flask server.', 'error');
+  }
+}
+
+async function downloadPDF() {
+  showToast('Generating PDF report…', 'info');
+  try {
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const r = await fetch(`${API}/reports/pdf?days=30`, { headers });
+    if (!r.ok) { showToast('PDF requires reportlab: pip install reportlab', 'warn', 'Missing Dependency'); return; }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `ecotrace-report-${new Date().toISOString().slice(0, 10)}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('PDF report downloaded! 📄', 'success', 'Report Ready');
+  } catch (e) {
+    showToast('PDF download failed — check Flask server.', 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   UTILITY FUNCTIONS
+═══════════════════════════════════════════ */
+function animNum(el, from, to, dur, fmt) {
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3); // cubic ease-out
+    el.textContent = fmt(from + (to - from) * e);
+    if (p < 1) requestAnimationFrame(tick);
+  })(start);
+}
+
+function animStats() {
+  document.querySelectorAll('.s-num[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    animNum(el, 0, target, 2200, v => {
+      const n = Math.round(v);
+      if (target >= 1000000) return (n / 1000000).toFixed(1) + 'M+';
+      if (target >= 1000)    return (n / 1000).toFixed(0)    + 'K+';
+      return n + '+';
+    });
+  });
+}
+
+/* Close modals on overlay click */
+document.querySelectorAll('.modal-ov').forEach(ov => {
+  ov.addEventListener('click', e => {
+    if (e.target === ov) {
+      ov.classList.remove('active');
+    }
+  });
+});
+
+/* Close sidebar on outside click (mobile) */
+document.addEventListener('click', e => {
+  const sb = document.getElementById('sidebar');
+  if (sb && sb.classList.contains('open')) {
+    if (!sb.contains(e.target) && !e.target.classList.contains('tb-menu')) {
+      closeSB();
+    }
+  }
+});
+</script>
+</body>
+</html>
