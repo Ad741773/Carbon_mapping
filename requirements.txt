@@ -4,7 +4,7 @@ Werkzeug>=2.3          # password hashing
 PyJWT>=2.8             # JWT tokens (no Flask-JWT-Extended needed)
 python-dotenv>=1.0     # .env loading
 numpy>=1.24            # ML prediction
-
+flask-cors>=4.0   
 # ── Optional extras ────────────────────────────────────────
 reportlab>=4.0         # PDF export  →  pip install reportlab
 # google-generativeai  # Gemini AI   →  pip install google-generativeai
