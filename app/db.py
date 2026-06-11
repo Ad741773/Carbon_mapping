@@ -5,8 +5,7 @@ Replaces SQLAlchemy so the project has zero external DB dependencies.
 import sqlite3, os
 from contextlib import contextmanager
 
-DB_PATH = os.getenv("DATABASE_URL", "ecotrace.db").replace("sqlite:///", "")
-
+DB_PATH = os.getenv("DATABASE_URL", "ecotrace.db").replace("sqlite:////", "/").replace("sqlite:///", "")
 
 def get_conn() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
