@@ -1,4 +1,4 @@
-            # 🌿 EcoTrace — Carbon Intelligence Platform
+                                      # 🌿 EcoTrace — Carbon Intelligence Platform
 
 Production-ready carbon footprint tracking and sustainability platform that helps users calculate, monitor, analyze, and reduce their environmental impact.
 
