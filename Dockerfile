@@ -3,7 +3,8 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir flask werkzeug pyjwt python-dotenv numpy reportlab gunicorn
+
+RUN pip install --no-cache-dir flask werkzeug pyjwt python-dotenv numpy reportlab gunicorn flask-cors
 
 COPY . .
 
