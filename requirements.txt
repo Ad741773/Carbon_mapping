@@ -1,13 +1,8 @@
-# ── Core (all pre-installed in this environment) ──────────
 Flask>=2.3
-Werkzeug>=2.3          # password hashing
-PyJWT>=2.8             # JWT tokens (no Flask-JWT-Extended needed)
-python-dotenv>=1.0     # .env loading
-numpy>=1.24            # ML prediction
-flask-cors>=4.0   
-# ── Optional extras ────────────────────────────────────────
-reportlab>=4.0         # PDF export  →  pip install reportlab
-# google-generativeai  # Gemini AI   →  pip install google-generativeai
-
-# ── Production server ──────────────────────────────────────
-gunicorn>=21.0         # pip install gunicorn
+Werkzeug>=2.3
+PyJWT>=2.8
+python-dotenv>=1.0
+numpy>=1.24
+flask-cors>=4.0
+reportlab>=4.0
+gunicorn>=21.0
